@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Request payload for login authentication
+ */
 public class LoginRequest {
 
     @NotBlank(message = "E-Mail empty!")
@@ -17,6 +20,12 @@ public class LoginRequest {
     public LoginRequest() {
     }
 
+    /**
+     * Creates a login payload
+     *
+     * @param email login email
+     * @param password password from client
+     */
     public LoginRequest(String email, String password) {
         this.email = email;
         this.password = password;

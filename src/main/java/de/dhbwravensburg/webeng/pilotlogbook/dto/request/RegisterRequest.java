@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
 
+/**
+ * Request payload for creating a new account (registration)
+ */
 public class RegisterRequest {
 
     @NotBlank(message = "Prename empty!")
@@ -18,7 +21,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password empty!")
-    @Size(min = 8, message = "Passwort needs to be at least 8 characters")
+    @Size(min = 8, message = "Password needs to be at least 8 characters")
     @Pattern(
             regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$",
             message = "Password must contain upper, lower case letters and a number"
@@ -28,6 +31,14 @@ public class RegisterRequest {
     public RegisterRequest() {
     }
 
+    /**
+     * Creates a registration payload
+     *
+     * @param firstName pilot first name
+     * @param lastName pilot last name
+     * @param email login email
+     * @param password password from client
+     */
     public RegisterRequest(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;

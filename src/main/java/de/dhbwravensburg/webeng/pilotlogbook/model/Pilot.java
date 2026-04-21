@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * JPA entity representing a pilot who can log into the system
- * Implements {@link UserDetails} for Spring Security authentication.
+ * Implements {@link UserDetails} for Spring Security authentication
  */
 @Entity
 @Table(name = "pilots")
@@ -40,7 +40,7 @@ public class Pilot implements UserDetails {
     }
 
     /**
-     * Creates a new Pilot with the given details
+     * Creates a new pilot
      *
      * @param firstName pilots first name
      * @param lastName  pilots last name
@@ -52,13 +52,11 @@ public class Pilot implements UserDetails {
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.createdAt = LocalDateTime.now();
     }
 
     // UserDetails methods
     /**
-     * Returns a collection of authorities granted to the user. Here, every pilot is assigned the "ROLE_USER" authority
-     * @return A collection of GrantedAuthority objects representing the user's roles and permissions.
+     * Every pilot receives default ROLE_USER authority
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -69,9 +67,7 @@ public class Pilot implements UserDetails {
     // Getters and Setters
 
     /**
-     * Returns the pilot's email as the username for Spring Security.
-     *
-     * @return the pilot's email address
+     * @return the pilot's email address as username for Spring Security
      */
     @Override
     public String getUsername() {
@@ -121,6 +117,11 @@ public class Pilot implements UserDetails {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    @PrePersist
+    private void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 }
 
