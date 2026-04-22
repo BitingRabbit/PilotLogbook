@@ -1,6 +1,7 @@
 package de.dhbwravensburg.webeng.pilotlogbook.model;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,22 +10,24 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * JPA entity representing a pilot who can log into the system
- * Implements {@link UserDetails} for Spring Security authentication
- */
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "pilots")
 public class Pilot implements UserDetails {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    @Setter(AccessLevel.NONE)
     private Long id;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private String firstName;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private String lastName;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -33,20 +36,10 @@ public class Pilot implements UserDetails {
     @Column(nullable = false, length = 100)
     private String password;
 
+    @Setter(AccessLevel.NONE)
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Pilot() {
-    }
-
-    /**
-     * Creates a new pilot
-     *
-     * @param firstName pilots first name
-     * @param lastName  pilots last name
-     * @param email     unique email used as login username
-     * @param password  encoded password
-     */
     public Pilot(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -54,56 +47,14 @@ public class Pilot implements UserDetails {
         this.password = password;
     }
 
-    // UserDetails methods
-    /**
-     * Every pilot receives default ROLE_USER authority
-     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority role = new SimpleGrantedAuthority("ROLE_USER");
-        return List.of(role);
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
-    // Getters and Setters
-
-    /**
-     * @return the pilot's email address as username for Spring Security
-     */
     @Override
     public String getUsername() {
         return email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     @Override
@@ -111,17 +62,8 @@ public class Pilot implements UserDetails {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
     @PrePersist
     private void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 }
-

@@ -2,80 +2,35 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * Request payload for creating a new account (registration)
- */
+@Getter
+@Setter
+@NoArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank(message = "Prename empty!")
+    @NotBlank(message = "First name empty!")
+    @Size(max = 50, message = "First name must not exceed 50 characters")
     private String firstName;
 
-    @NotBlank(message = "Last Name empty!")
+    @NotBlank(message = "Last name empty!")
+    @Size(max = 50, message = "Last name must not exceed 50 characters")
     private String lastName;
 
-    @NotBlank(message = "E-Mail empty!")
+    @NotBlank(message = "E-mail empty!")
     @Email(message = "Not a valid email format")
+    @Size(max = 100, message = "E-mail must not exceed 100 characters")
     private String email;
 
     @NotBlank(message = "Password empty!")
-    @Size(min = 8, message = "Password needs to be at least 8 characters")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(
             regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$",
-            message = "Password must contain upper, lower case letters and a number"
+            message = "Password must contain uppercase, lowercase letters and a number"
     )
     private String password;
-
-    public RegisterRequest() {
-    }
-
-    /**
-     * Creates a registration payload
-     *
-     * @param firstName pilot first name
-     * @param lastName pilot last name
-     * @param email login email
-     * @param password password from client
-     */
-    public RegisterRequest(String firstName, String lastName, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
-
