@@ -31,7 +31,7 @@ public class AircraftResponse {
     private EngineType engineType;
 
     /**
-     * Maps an {@link Aircraft} entity to this DTO.
+     * Maps an {@link Aircraft} entity to this {@link AircraftResponse} DTO.
      *
      * @param aircraft aircraft entity to map, must not be {@code null}
      * @return new {@code AircraftResponse} with mapped values
