@@ -2,6 +2,7 @@ package de.dhbwravensburg.webeng.pilotlogbook.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,11 +12,32 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
 /**
- * Maps backend exceptions to HTTP error responses
+ * Maps backend exceptions to structured HTTP error responses.
+ *
+ * Each handler method converts a specific exception type into an appropriate
+ * HTTP status code and a JSON body containing {@code timestamp}, {@code status},
+ * and {@code error} fields.
  */
+@RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * helper to avoid redundancy, builds an exception response
+     *
+     * @param status  http Status Code
+     * @param message error message
+     * @return http error response
+     */
+    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", status.value());
+        body.put("error", message);
+        return ResponseEntity.status(status).body(body);
+    }
+
+    // --------------------------------------------------------------
 
     /**
      * Handles validation failures from @Valid request bodies
@@ -39,19 +61,36 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles requests for resources that do not exist.
+     *
+     * @param ex exception carrying the not-found detail message
+     * @return HTTP 404 response with the exception message
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    /**
      * Handles business conflicts such as duplicate registration data
      *
      * @param ex conflict exception
      * @return HTTP 409 response
      */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleConflict(IllegalArgumentException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", ex.getMessage());
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    /**
+     * Handles malformed JSON or invalid enum values in request bodies
+     *
+     * @param ex deserialization exception
+     * @return HTTP 400 response
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Malformed request body");
     }
 
     /**
@@ -62,12 +101,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", HttpStatus.UNAUTHORIZED.value());
-        body.put("error", ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password");
     }
 }
 
