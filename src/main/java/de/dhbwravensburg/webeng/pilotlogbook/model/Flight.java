@@ -9,6 +9,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * JPA entity representing a single flight entry in the pilot's logbook.
@@ -31,6 +33,7 @@ public class Flight {
     /** The pilot who logged this flight */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pilot_id", nullable = false)
+    @Setter(AccessLevel.NONE)
     private Pilot pilot;
 
     /** ICAO code of the departure airport (exactly 4 characters) */
@@ -113,6 +116,15 @@ public class Flight {
     @Column(length = 500)
     private String remarks;
 
+    /**
+     * Weather snapshots captured for this flight (typically one for departure and
+     * one for arrival). The list is owned by the flight: snapshots are persisted
+     * and removed together with the flight.
+     */
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Setter(AccessLevel.NONE)
+    private List<WeatherSnapshot> weatherSnapshots = new ArrayList<>();
+
     /** Timestamp set once on first persist; never updated afterward */
     @Setter(AccessLevel.NONE)
     @Column(nullable = false, updatable = false)
@@ -135,6 +147,7 @@ public class Flight {
      * @param remarks         optional free-text remarks
      * @throws IllegalArgumentException if {@code arrivalTime} is not after {@code departureTime}
      */
+    @Builder
     public Flight(Pilot pilot,
                   String departureIcao,
                   String destinationIcao,
@@ -173,11 +186,15 @@ public class Flight {
     }
 
     /**
-     * Recalculates {@link #durationInMinutes} from the current departure and arrival times
-     * before each database update
+     * Runs before each update: checks arrival is after departure,
+     * then recomputes {@link #durationInMinutes}.
+     *
+     * @throws IllegalArgumentException if {@code arrivalTime} is not after {@code departureTime}
      */
     @PreUpdate
     private void onUpdate() {
+        if (!arrivalTime.isAfter(departureTime))
+            throw new IllegalArgumentException("Arrival time must be after departure time");
         this.durationInMinutes = Duration.between(departureTime, arrivalTime).toMinutes();
     }
 }

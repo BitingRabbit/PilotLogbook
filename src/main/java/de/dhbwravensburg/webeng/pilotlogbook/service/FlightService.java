@@ -7,11 +7,14 @@ import de.dhbwravensburg.webeng.pilotlogbook.dto.response.FlightResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Pilot;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft;
+import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot.PhaseType;
 import de.dhbwravensburg.webeng.pilotlogbook.repository.FlightRepository;
 import de.dhbwravensburg.webeng.pilotlogbook.util.CurrentAircraftProvider;
 import de.dhbwravensburg.webeng.pilotlogbook.util.CurrentFlightProvider;
 import de.dhbwravensburg.webeng.pilotlogbook.util.CurrentPilotProvider;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,8 @@ public class FlightService {
     private final CurrentPilotProvider currentPilotProvider;
     private final CurrentAircraftProvider currentAircraftProvider;
     private final CurrentFlightProvider currentFlightProvider;
+    private final WeatherSnapshotService weatherSnapshotService;
+    private final AirportService airportService;
 
     /**
      * Creates a new flight log entry for the current pilot.
@@ -39,31 +44,44 @@ public class FlightService {
      * @param request flight details
      * @return the persisted flight
      * @throws ResourceNotFoundException if the referenced aircraft does not belong to the pilot
+     * @throws IllegalArgumentException if ICAO codes are invalid
      */
     @Transactional
     public FlightResponse createFlight(CreateFlightRequest request) {
         Pilot pilot = currentPilotProvider.get();
         Aircraft aircraft = currentAircraftProvider.get(request.getAircraftId(), pilot.getId());
 
-        validateIcao(request.getDepartureIcao());
-        validateIcao(request.getDestinationIcao());
+        /* Validate wether ICAO codes are correct (Pattern) and existing */
+        airportService.validateIcaoAndgetOrFetch(request.getDepartureIcao());
+        airportService.validateIcaoAndgetOrFetch(request.getDestinationIcao());
 
-        Flight flight = new Flight(
-                pilot,
-                request.getDepartureIcao().toUpperCase(),
-                request.getDestinationIcao().toUpperCase(),
-                request.getDepartureTime(),
-                request.getArrivalTime(),
-                aircraft,
-                request.getPassengers(),
-                request.getLandings(),
-                request.getPilotFunction(),
-                request.getFlightType(),
-                request.getCost(),
-                request.getRemarks()
-        );
+        Flight flight = Flight.builder()
+                .pilot(pilot)
+                .departureIcao(request.getDepartureIcao().toUpperCase())
+                .destinationIcao(request.getDestinationIcao().toUpperCase())
+                .departureTime(request.getDepartureTime())
+                .arrivalTime(request.getArrivalTime())
+                .aircraft(aircraft)
+                .passengers(request.getPassengers())
+                .landings(request.getLandings())
+                .pilotFunction(request.getPilotFunction())
+                .flightType(request.getFlightType())
+                .cost(request.getCost())
+                .remarks(request.getRemarks())
+                .build();
 
-        return FlightResponse.from(flightRepository.save(flight));
+        Flight saved = flightRepository.save(flight);
+
+        // Trigger the async worker only after the transaction commits — otherwise
+        // the worker thread might query the flight before it is visible in the DB.
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                weatherSnapshotService.captureSnapshotsForFlight(saved.getId());
+            }
+        });
+
+        return FlightResponse.from(saved);
     }
 
     /**
@@ -131,7 +149,7 @@ public class FlightService {
      * @param request  fields to update
      * @return the updated flight response
      * @throws ResourceNotFoundException if the flight or referenced aircraft does not belong to the pilot
-     * @throws IllegalArgumentException  if the resulting arrival time is not after departure time
+     * @throws IllegalArgumentException  if the resulting arrival time is not after departure time or invalid ICAO codes
      */
     @Transactional
     public FlightResponse updateFlight(Long flightId, UpdateFlightRequest request) {
@@ -139,17 +157,28 @@ public class FlightService {
 
         Flight flight = currentFlightProvider.get(flightId, pilot.getId());
 
-        if (request.getDepartureIcao() != null)
+        if (request.getDepartureIcao() != null) {
+            /* Validate wether ICAO codes are correct (Pattern) and existing */
+            airportService.validateIcaoAndgetOrFetch(request.getDepartureIcao());
             flight.setDepartureIcao(request.getDepartureIcao().toUpperCase());
+            deleteWeatherSnapshot(PhaseType.DEPARTURE, flight);
+        }
 
-        if (request.getDestinationIcao() != null)
+        if (request.getDestinationIcao() != null) {
+            /* Validate wether ICAO codes are correct (Pattern) and existing */
+            airportService.validateIcaoAndgetOrFetch(request.getDestinationIcao());
             flight.setDestinationIcao(request.getDestinationIcao().toUpperCase());
-
-        if (request.getDepartureTime() != null)
+            deleteWeatherSnapshot(PhaseType.ARRIVAL, flight);
+        }
+        if (request.getDepartureTime() != null) {
             flight.setDepartureTime(request.getDepartureTime());
+            deleteWeatherSnapshot(PhaseType.DEPARTURE, flight);
+        }
 
-        if (request.getArrivalTime() != null)
+        if (request.getArrivalTime() != null) {
             flight.setArrivalTime(request.getArrivalTime());
+            deleteWeatherSnapshot(PhaseType.ARRIVAL, flight);
+        }
 
         if (!flight.getArrivalTime().isAfter(flight.getDepartureTime())) {
             throw new IllegalArgumentException("Arrival time must be after departure time");
@@ -183,6 +212,10 @@ public class FlightService {
         flightRepository.delete(flight);
     }
 
+    // ------------------------ HELPER ------------------------
 
+    private void deleteWeatherSnapshot(PhaseType phaseType, Flight flight) {
+        flight.getWeatherSnapshots().removeIf(s -> s.getPhaseType() == phaseType);
+    }
 
 }

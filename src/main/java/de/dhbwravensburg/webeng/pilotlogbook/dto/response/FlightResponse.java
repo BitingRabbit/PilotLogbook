@@ -3,12 +3,12 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight.PilotFunction;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight.FlightType;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
 /**
  * Response payload returned when reading aircraft data.
@@ -18,7 +18,7 @@ import lombok.Getter;
  * Aircraft details are inlined to avoid a separate lookup on the client side.
  */
 @Getter
-@AllArgsConstructor
+@Builder
 public class FlightResponse {
     
     private Long id;
@@ -71,6 +71,9 @@ public class FlightResponse {
     /** Timestamp when this flight entry was created. */
     private LocalDateTime createdAt;
 
+    /** Weather snapshots captured at departure and arrival. Empty if not yet fetched. */
+    private List<WeatherSnapshotResponse> weatherSnapshots;
+
     /**
      * Maps a {@link Flight} entity to this {@link FlightResponse} DTO.
      *
@@ -78,24 +81,29 @@ public class FlightResponse {
      * @return new {@code FlightResponse} with mapped values
      */
     public static FlightResponse from(Flight flight) {
-        return new FlightResponse(
-                flight.getId(),
-                flight.getDepartureIcao(),
-                flight.getDestinationIcao(),
-                flight.getDepartureTime(),
-                flight.getArrivalTime(),
-                flight.getDurationInMinutes(),
-                flight.getAircraft().getId(),
-                flight.getAircraft().getRegistration(),
-                flight.getAircraft().getType(),
-                flight.getAircraft().getModel(),
-                flight.getPassengers(),
-                flight.getLandings(),
-                flight.getPilotFunction(),
-                flight.getFlightType(),
-                flight.getCost(),
-                flight.getRemarks(),
-                flight.getCreatedAt()
-        );
+        List<WeatherSnapshotResponse> snapshots = flight.getWeatherSnapshots().stream()
+                .map(WeatherSnapshotResponse::from)
+                .toList();
+
+        return FlightResponse.builder()
+                .id(flight.getId())
+                .departureIcao(flight.getDepartureIcao())
+                .destinationIcao(flight.getDestinationIcao())
+                .departureTime(flight.getDepartureTime())
+                .arrivalTime(flight.getArrivalTime())
+                .durationInMinutes(flight.getDurationInMinutes())
+                .aircraftId(flight.getAircraft().getId())
+                .aircraftRegistration(flight.getAircraft().getRegistration())
+                .aircraftType(flight.getAircraft().getType())
+                .aircraftModel(flight.getAircraft().getModel())
+                .passengers(flight.getPassengers())
+                .landings(flight.getLandings())
+                .pilotFunction(flight.getPilotFunction())
+                .flightType(flight.getFlightType())
+                .cost(flight.getCost())
+                .remarks(flight.getRemarks())
+                .createdAt(flight.getCreatedAt())
+                .weatherSnapshots(snapshots)
+                .build();
     }
 }
