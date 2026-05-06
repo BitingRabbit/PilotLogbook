@@ -1,5 +1,6 @@
 package de.dhbwravensburg.webeng.pilotlogbook.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -102,6 +103,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+    }
+
+    /**
+     * Handles unavailable weather issue
+     *
+     * @param ex unavailable exception
+     * @return HTTP 503 response
+     */
+    @ExceptionHandler(WeatherUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnavailableWeather(WeatherUnavailableException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, "Weather data currently unavailable");
+    }
+
+    /**
+     * Handles invalid arguments such as failed ICAO existence checks or
+     * arrival-before-departure flight time errors.
+     *
+     * @param ex illegal argument exception
+     * @return HTTP 400 response with the exception message
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    /**
+     * Handles validation failures from {@code @RequestParam}/{@code @PathVariable}
+     * constraints (e.g. {@code @Pattern}, {@code @Size}) when {@code @Validated} is on the controller.
+     *
+     * @param ex constraint violation exception
+     * @return HTTP 400 response with the violation message
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }
 
