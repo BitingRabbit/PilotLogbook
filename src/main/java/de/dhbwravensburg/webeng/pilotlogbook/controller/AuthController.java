@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * authentication endpoints for registration and login
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-/*
- * authentication endpoints for registration and login
- */
 public class AuthController {
 
     private final AuthService authService;

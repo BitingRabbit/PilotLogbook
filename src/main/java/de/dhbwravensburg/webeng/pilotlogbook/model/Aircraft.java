@@ -16,23 +16,34 @@ import java.time.LocalDateTime;
 @Table(name = "aircrafts")
 public class Aircraft {
 
-    /** Equality is determined only by the {@code id} */
+    /** Classifies the propulsion system of the aircraft */
+    public enum EngineType {
+        /** Single-engine piston aircraft */
+        SINGLE_PISTON,
+        /** Multi-engine piston aircraft */
+        MULTI_PISTON,
+        /** Turboprop aircraft */
+        TURBOPROP,
+        /** Jet-powered aircraft */
+        JET
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    /** The pilot who owns this aircraft. Loaded lazily to avoid N+1 queries */
+    /** The pilot who owns this aircraft. Immutable after creation to prevent cross-tenant reassignment. */
+    @Setter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pilot_id", nullable = false)
     private Pilot pilot;
 
     /**
-     * ICAO/national registration mark (e.g. {@code D-ABCD})
-     * 4–6 uppercase alphanumeric characters or hyphens
+     * ICAO/national registration mark (e.g. {@code D-EABC})
      */
-    @Column(nullable = false, length = 6)
+    @Column(nullable = false, length = 10)
     private String registration;
 
     /**
@@ -45,18 +56,6 @@ public class Aircraft {
     /** Optional free-text model/variant name (e.g. {@code Cessna 172 Skyhawk}) */
     @Column(length = 50)
     private String model;
-
-    /** Classifies the propulsion system of the aircraft */
-    public enum EngineType {
-        /** Single-engine piston aircraft */
-        SINGLE_PISTON,
-        /** Multi-engine piston aircraft */
-        MULTI_PISTON,
-        /** Turboprop aircraft */
-        TURBOPROP,
-        /** Jet-powered aircraft */
-        JET
-    }
 
     /** The engine/propulsion type of this aircraft. */
     @Enumerated(EnumType.STRING)
@@ -77,6 +76,7 @@ public class Aircraft {
      * @param model        optional model/variant name, may be {@code null}
      * @param engineType   the engine/propulsion type
      */
+    @Builder
     public Aircraft(Pilot pilot,
                     String registration,
                     String type,
