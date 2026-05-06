@@ -24,23 +24,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * helper to avoid redundancy, builds an exception response
-     *
-     * @param status  http Status Code
-     * @param message error message
-     * @return http error response
-     */
-    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", status.value());
-        body.put("error", message);
-        return ResponseEntity.status(status).body(body);
-    }
-
-    // --------------------------------------------------------------
-
-    /**
      * Handles validation failures from @Valid request bodies
      *
      * @param ex validation exception
@@ -106,7 +89,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles unavailable weather issue
+     * Handles unavailable weather data issue
      *
      * @param ex unavailable exception
      * @return HTTP 503 response
@@ -138,6 +121,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // ------------------------ HELPER ------------------------
+
+    /**
+     * helper to avoid redundancy, builds an exception response
+     *
+     * @param status  http Status Code
+     * @param message error message
+     * @return http error response
+     */
+    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", status.value());
+        body.put("error", message);
+        return ResponseEntity.status(status).body(body);
     }
 }
 
