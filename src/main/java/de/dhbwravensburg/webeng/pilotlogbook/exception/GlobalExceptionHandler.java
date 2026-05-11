@@ -100,6 +100,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles unavailable airport data issue
+     *
+     * @param ex unavailable exception
+     * @return HTTP 503 response
+     */
+    @ExceptionHandler(AirportUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnavailableAirport(AirportUnavailableException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, "Airport data currently unavailable");
+    }
+
+    /**
      * Handles invalid arguments such as failed ICAO existence checks or
      * arrival-before-departure flight time errors.
      *
