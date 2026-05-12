@@ -18,7 +18,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "flights")
@@ -35,16 +35,6 @@ public class Flight {
     @JoinColumn(name = "pilot_id", nullable = false)
     @Setter(AccessLevel.NONE)
     private Pilot pilot;
-
-    /** ICAO code of the departure airport (exactly 4 characters) */
-    @Column(nullable = false, length = 4)
-    @Size(min = 4, max = 4)
-    private String departureIcao;
-
-    /** ICAO code of the destination airport (exactly 4 characters) */
-    @Column(nullable = false, length = 4)
-    @Size(min = 4, max = 4)
-    private String destinationIcao;
 
     /** Date and time of departure */
     @Column(nullable = false)
@@ -121,9 +111,21 @@ public class Flight {
      * one for arrival). The list is owned by the flight: snapshots are persisted
      * and removed together with the flight.
      */
-    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "flight",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     @Setter(AccessLevel.NONE)
     private List<WeatherSnapshot> weatherSnapshots = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "origin_airport_id", nullable = false)
+    private Airport originAirport;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "destination_airport_id", nullable = false)
+    private Airport destinationAirport;
 
     /** Timestamp set once on first persist; never updated afterward */
     @Setter(AccessLevel.NONE)
@@ -134,8 +136,6 @@ public class Flight {
      * Creates a fully initialised Flight and validates that arrival is after departure.
      *
      * @param pilot           the logging pilot
-     * @param departureIcao   4-letter ICAO code of the departure airport
-     * @param destinationIcao 4-letter ICAO code of the destination airport
      * @param departureTime   date/time of departure
      * @param arrivalTime     date/time of arrival (must be after {@code departureTime})
      * @param aircraft        aircraft used for the flight
@@ -149,8 +149,6 @@ public class Flight {
      */
     @Builder
     public Flight(Pilot pilot,
-                  String departureIcao,
-                  String destinationIcao,
                   LocalDateTime departureTime,
                   LocalDateTime arrivalTime,
                   Aircraft aircraft,
@@ -159,10 +157,10 @@ public class Flight {
                   PilotFunction pilotFunction,
                   FlightType flightType,
                   BigDecimal cost,
+                  Airport originAirport,
+                  Airport destinationAirport,
                   String remarks) {
         this.pilot = pilot;
-        this.departureIcao = departureIcao;
-        this.destinationIcao = destinationIcao;
         if (!arrivalTime.isAfter(departureTime))
             throw new IllegalArgumentException("Arrival time must be after departure time");
         this.departureTime = departureTime;
@@ -174,6 +172,8 @@ public class Flight {
         this.pilotFunction = pilotFunction;
         this.flightType = flightType;
         this.cost = cost;
+        this.originAirport = originAirport;
+        this.destinationAirport = destinationAirport;
         this.remarks = remarks;
     }
 

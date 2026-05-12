@@ -46,9 +46,9 @@ public class WeatherSnapshotService {
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flight not found: " + flightId));
 
-        captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getDepartureIcao(),
+        captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getOriginAirport().getIcao(),
                 flight.getDepartureTime(), null);
-        captureOrUpdate(flight, PhaseType.ARRIVAL, flight.getDestinationIcao(),
+        captureOrUpdate(flight, PhaseType.ARRIVAL, flight.getDestinationAirport().getIcao(),
                 flight.getArrivalTime(), null);
     }
 
@@ -67,9 +67,9 @@ public class WeatherSnapshotService {
         Map<PhaseType, WeatherSnapshot> existing = flight.getWeatherSnapshots().stream()
                 .collect(Collectors.toMap(WeatherSnapshot::getPhaseType, s -> s));
 
-        captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getDepartureIcao(),
+        captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getOriginAirport().getIcao(),
                 flight.getDepartureTime(), existing.get(PhaseType.DEPARTURE));
-        captureOrUpdate(flight, PhaseType.ARRIVAL, flight.getDestinationIcao(),
+        captureOrUpdate(flight, PhaseType.ARRIVAL, flight.getDestinationAirport().getIcao(),
                 flight.getArrivalTime(), existing.get(PhaseType.ARRIVAL));
 
         return weatherSnapshotRepository.findByFlightId(flightId).stream()

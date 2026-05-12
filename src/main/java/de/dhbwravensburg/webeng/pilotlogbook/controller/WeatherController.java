@@ -41,7 +41,7 @@ public class WeatherController {
      */
     @GetMapping
     public ResponseEntity<MetarDto> getMetar(
-            @RequestParam @Pattern(regexp = "^[A-Za-z]{4}$",
+            @RequestParam @Pattern(regexp = "^[A-Z]{4}$",
                     message = "ICAO must be exactly 4 letters") String icao,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime time) {

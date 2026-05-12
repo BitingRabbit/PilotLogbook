@@ -23,12 +23,6 @@ public class FlightResponse {
     
     private Long id;
 
-    /** ICAO code of the departure airport. */
-    private String departureIcao;
-
-    /** ICAO code of the destination airport. */
-    private String destinationIcao;
-
     /** Date and time of departure. */
     private LocalDateTime departureTime;
 
@@ -74,6 +68,11 @@ public class FlightResponse {
     /** Weather snapshots captured at departure and arrival. Empty if not yet fetched. */
     private List<WeatherSnapshotResponse> weatherSnapshots;
 
+    private AirportResponse originAirport;
+
+    private AirportResponse destinationAirport;
+
+
     /**
      * Maps a {@link Flight} entity to this {@link FlightResponse} DTO.
      *
@@ -87,8 +86,6 @@ public class FlightResponse {
 
         return FlightResponse.builder()
                 .id(flight.getId())
-                .departureIcao(flight.getDepartureIcao())
-                .destinationIcao(flight.getDestinationIcao())
                 .departureTime(flight.getDepartureTime())
                 .arrivalTime(flight.getArrivalTime())
                 .durationInMinutes(flight.getDurationInMinutes())
@@ -104,6 +101,8 @@ public class FlightResponse {
                 .remarks(flight.getRemarks())
                 .createdAt(flight.getCreatedAt())
                 .weatherSnapshots(snapshots)
+                .originAirport(AirportResponse.from(flight.getOriginAirport()))
+                .destinationAirport(AirportResponse.from(flight.getDestinationAirport()))
                 .build();
     }
 }

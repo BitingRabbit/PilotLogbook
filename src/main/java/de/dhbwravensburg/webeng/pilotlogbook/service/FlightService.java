@@ -4,6 +4,7 @@ import de.dhbwravensburg.webeng.pilotlogbook.exception.ResourceNotFoundException
 import de.dhbwravensburg.webeng.pilotlogbook.dto.request.CreateFlightRequest;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.request.UpdateFlightRequest;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.response.FlightResponse;
+import de.dhbwravensburg.webeng.pilotlogbook.model.Airport;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Pilot;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft;
@@ -41,33 +42,34 @@ public class FlightService {
      * Creates a new flight log entry for the current pilot.
      * ICAO codes are stored in uppercase. The referenced aircraft must be owned by the pilot.
      *
-     * @param request flight details
+     * @param req flight details
      * @return the persisted flight
      * @throws ResourceNotFoundException if the referenced aircraft does not belong to the pilot
      * @throws IllegalArgumentException if ICAO codes are invalid
      */
     @Transactional
-    public FlightResponse createFlight(CreateFlightRequest request) {
+    public FlightResponse createFlight(CreateFlightRequest req) {
         Pilot pilot = currentPilotProvider.get();
-        Aircraft aircraft = currentAircraftProvider.get(request.getAircraftId(), pilot.getId());
+        Aircraft aircraft = currentAircraftProvider.get(req.getAircraftId(), pilot.getId());
 
         /* Validate wether ICAO codes are correct (Pattern) and existing */
-        airportService.validateIcaoAndgetOrFetch(request.getDepartureIcao());
-        airportService.validateIcaoAndgetOrFetch(request.getDestinationIcao());
+        Airport dep = airportService.validateIcaoAndGetOrFetch(req.getDepartureIcao());
+        Airport arr = airportService.validateIcaoAndGetOrFetch(req.getDestinationIcao());
+
 
         Flight flight = Flight.builder()
                 .pilot(pilot)
-                .departureIcao(request.getDepartureIcao().toUpperCase())
-                .destinationIcao(request.getDestinationIcao().toUpperCase())
-                .departureTime(request.getDepartureTime())
-                .arrivalTime(request.getArrivalTime())
+                .originAirport(dep)
+                .destinationAirport(arr)
+                .departureTime(req.getDepartureTime())
+                .arrivalTime(req.getArrivalTime())
                 .aircraft(aircraft)
-                .passengers(request.getPassengers())
-                .landings(request.getLandings())
-                .pilotFunction(request.getPilotFunction())
-                .flightType(request.getFlightType())
-                .cost(request.getCost())
-                .remarks(request.getRemarks())
+                .passengers(req.getPassengers())
+                .landings(req.getLandings())
+                .pilotFunction(req.getPilotFunction())
+                .flightType(req.getFlightType())
+                .cost(req.getCost())
+                .remarks(req.getRemarks())
                 .build();
 
         Flight saved = flightRepository.save(flight);
@@ -119,7 +121,7 @@ public class FlightService {
      * Returns flights for the current pilot filtered by optional criteria.
      * Blank strings are treated as not present filters.
      *
-     * @param dep      departure ICAO prefix filter (optional)
+     * @param dep      origin ICAO prefix filter (optional)
      * @param dest     destination ICAO prefix filter (optional)
      * @param duration minimum flight duration filter in minutes (optional)
      * @param month    month number filter 1–12 (optional)
@@ -159,15 +161,15 @@ public class FlightService {
 
         if (request.getDepartureIcao() != null) {
             /* Validate wether ICAO codes are correct (Pattern) and existing */
-            airportService.validateIcaoAndgetOrFetch(request.getDepartureIcao());
-            flight.setDepartureIcao(request.getDepartureIcao().toUpperCase());
+            Airport dep = airportService.validateIcaoAndGetOrFetch(request.getDepartureIcao());
+            flight.setOriginAirport(dep);
             deleteWeatherSnapshot(PhaseType.DEPARTURE, flight);
         }
 
         if (request.getDestinationIcao() != null) {
             /* Validate wether ICAO codes are correct (Pattern) and existing */
-            airportService.validateIcaoAndgetOrFetch(request.getDestinationIcao());
-            flight.setDestinationIcao(request.getDestinationIcao().toUpperCase());
+            Airport arr = airportService.validateIcaoAndGetOrFetch(request.getDestinationIcao());
+            flight.setDestinationAirport(arr);
             deleteWeatherSnapshot(PhaseType.ARRIVAL, flight);
         }
         if (request.getDepartureTime() != null) {

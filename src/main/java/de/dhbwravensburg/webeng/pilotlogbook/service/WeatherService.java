@@ -47,6 +47,8 @@ public class WeatherService {
         return callNoaa(icao, time);
     }
 
+    // ------------------------ HELPER ------------------------
+
     /**
      * Calls the NOAA aviationweather.gov API and returns the first result.
      * Passes {@code time = null} for a live request, or a specific UTC time for historical data.
@@ -57,7 +59,7 @@ public class WeatherService {
      */
     private MetarDto callNoaa(String icao, LocalDateTime time) {
         /* Validate wether ICAO codes are correct (Pattern) and existing */
-        airportService.validateIcaoAndgetOrFetch(icao);
+        airportService.validateIcaoAndGetOrFetch(icao);
 
         NoaaMetarDto[] response;
 
