@@ -3,6 +3,7 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft.EngineType;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,7 +14,7 @@ import lombok.Getter;
  * Use {@link #from(Aircraft)} to create an instance from a JPA entity.
  */
 @Getter
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AircraftResponse {
 
     private Long id;

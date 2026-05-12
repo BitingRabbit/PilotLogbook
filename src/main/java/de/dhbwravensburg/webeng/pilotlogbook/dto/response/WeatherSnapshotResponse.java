@@ -7,6 +7,7 @@ import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot;
 import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot.PhaseType;
 import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot.Status;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarDto.DecodedMetar;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class WeatherSnapshotResponse {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()

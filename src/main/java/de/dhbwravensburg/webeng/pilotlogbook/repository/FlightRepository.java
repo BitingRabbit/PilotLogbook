@@ -1,6 +1,7 @@
 package de.dhbwravensburg.webeng.pilotlogbook.repository;
 
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,6 +30,9 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
      * @param pilotId the pilots id
      * @return list of flights flown by the pilot
      */
+    @EntityGraph(attributePaths = { "originAirport", "originAirport.runways" ,"destinationAirport",
+            "destinationAirport.runways", "aircraft" }
+    )
     List<Flight> findByPilotId(Long pilotId);
 
     /**
@@ -41,10 +45,13 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
      * @param month month of the flight (dep)
      * @return list of flights matching the criteria
      */
+    @EntityGraph(attributePaths = { "originAirport", "originAirport.runways" ,"destinationAirport",
+            "destinationAirport.runways", "aircraft" }
+    )
     @Query("""
         SELECT f FROM Flight f
-        WHERE (:dep IS NULL OR LOWER(f.departureIcao) = LOWER(:dep))
-          AND (:dest IS NULL OR LOWER(f.destinationIcao) = LOWER(:dest))
+        WHERE (:dep IS NULL OR LOWER(f.originAirport.icao) = LOWER(:dep))
+          AND (:dest IS NULL OR LOWER(f.destinationAirport.icao) = LOWER(:dest))
           AND (:duration IS NULL OR f.durationInMinutes = :duration)
           AND (:month IS NULL OR MONTH(f.departureTime) = :month)
           AND (f.pilot.id = :pilotId)

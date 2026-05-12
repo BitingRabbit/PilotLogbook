@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * weather service cannot deliver data for the requested point in time.
  */
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "weather_snapshots")

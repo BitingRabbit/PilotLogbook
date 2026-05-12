@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Pilot account — JPA entity and Spring Security {@link UserDetails} principal.
+ * Pilot account - JPA entity and Spring Security {@link UserDetails} principal.
  * {@link #email} is the login username; {@link #password} holds the BCrypt hash.
  * <p>
  * Both fields have no Lombok setter to avoid accidental direct assignment
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "pilots")

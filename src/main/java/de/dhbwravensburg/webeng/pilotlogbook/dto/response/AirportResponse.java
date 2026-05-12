@@ -2,6 +2,8 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 
 import de.dhbwravensburg.webeng.pilotlogbook.model.Airport;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Runway;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,6 +18,7 @@ import java.util.List;
  */
 @Getter
 @Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AirportResponse {
 
     /** ICAO code (4 letters, uppercase). */

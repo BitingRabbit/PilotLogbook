@@ -1,7 +1,6 @@
 package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,7 +31,8 @@ public class MetarDto {
      * All decoded weather parameters of a single METAR observation.
      */
     @Getter
-    @AllArgsConstructor
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DecodedMetar {
         private Wind wind;
         private Visibility visibility;
