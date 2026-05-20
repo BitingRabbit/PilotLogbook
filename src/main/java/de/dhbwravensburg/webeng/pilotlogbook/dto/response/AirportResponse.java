@@ -77,26 +77,22 @@ public class AirportResponse {
     /**
      * Public API representation of a single runway. Nested because runways are
      * only ever exposed as part of an airport.
+     *
+     * @param lengthInFt runway length in feet
+     * @param widthInFt  runway width in feet
+     * @param hasLights  {@code true} if the runway is lit, {@code null} if unknown
      */
-    @Getter
-    @Builder
-    public static class RunwayResponse {
-
-        /** Runway length in feet. */
-        private Integer lengthInFt;
-
-        /** Runway width in feet. */
-        private Integer widthInFt;
-
-        /** {@code true} if the runway is lit, {@code null} if unknown. */
-        private Boolean hasLights;
-
+    public record RunwayResponse(
+            Integer lengthInFt,
+            Integer widthInFt,
+            Boolean hasLights
+    ) {
         public static RunwayResponse from(Runway runway) {
-            return RunwayResponse.builder()
-                    .lengthInFt(runway.getLengthInFt())
-                    .widthInFt(runway.getWidthInFt())
-                    .hasLights(runway.getHasLights())
-                    .build();
+            return new RunwayResponse(
+                    runway.getLengthInFt(),
+                    runway.getWidthInFt(),
+                    runway.getHasLights()
+            );
         }
     }
 }

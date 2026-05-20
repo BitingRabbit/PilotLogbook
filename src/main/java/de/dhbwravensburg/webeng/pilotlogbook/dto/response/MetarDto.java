@@ -1,7 +1,5 @@
 package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,125 +8,95 @@ import java.util.List;
  *
  * <p>Contains both the raw METAR string and a fully decoded {@link DecodedMetar} breakdown so the
  * frontend can render individual weather parameters without parsing the raw string itself.
+ *
+ * @param icao            4-letter ICAO airport code the observation belongs to (e.g. {@code EDDS})
+ * @param observationTime UTC time of the observation; {@code null} when deserialized from a stored snapshot
+ * @param rawMetar        unmodified raw METAR string as delivered by NOAA
+ * @param decodedMetar    structured breakdown of the raw METAR
  */
-@Getter
-@AllArgsConstructor
-public class MetarDto {
-
-    /** 4-letter ICAO airport code the observation belongs to (e.g. {@code EDDS}). */
-    private String icao;
-
-    /** UTC time of the observation. {@code null} when deserialized from a stored snapshot. */
-    private LocalDateTime observationTime;
-
-    /** Unmodified raw METAR string as delivered by NOAA (e.g. {@code EDDS 121220Z 27008KT ...}). */
-    private String rawMetar;
-
-    /** Structured breakdown of the raw METAR. */
-    private DecodedMetar decodedMetar;
+public record MetarDto(
+        String icao,
+        LocalDateTime observationTime,
+        String rawMetar,
+        DecodedMetar decodedMetar
+) {
 
     /**
      * All decoded weather parameters of a single METAR observation.
+     *
+     * @param wind           surface wind conditions
+     * @param visibility     prevailing visibility
+     * @param temperature    air temperature and dew point
+     * @param pressure       altimeter setting / QNH
+     * @param clouds         cloud layers ordered from lowest to highest base altitude; empty when CAVOK
+     * @param phenomena      present-weather phenomena codes (e.g. {@code "-RA"}, {@code "BR"}); empty when none reported
+     * @param flightCategory FAA/ICAO flight category derived from visibility and ceiling:
+     *                       {@code VFR}, {@code MVFR}, {@code IFR}, or {@code LIFR}
      */
-    @Getter
-    @Setter
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class DecodedMetar {
-        private Wind wind;
-        private Visibility visibility;
-        private Temperature temperature;
-        private Pressure pressure;
-
-        /** Cloud layers ordered from lowest to highest base altitude. Empty list when CAVOK. */
-        private List<CloudLayer> clouds;
-
-        /**
-         * Present-weather phenomena codes (e.g. {@code "-RA"}, {@code "BR"}).
-         * Empty list when no significant weather is reported.
-         */
-        private List<String> phenomena;
-
-        /**
-         * FAA/ICAO flight category derived from visibility and ceiling:
-         * {@code VFR}, {@code MVFR}, {@code IFR}, or {@code LIFR}.
-         */
-        private String flightCategory;
-    }
+    public record DecodedMetar(
+            Wind wind,
+            Visibility visibility,
+            Temperature temperature,
+            Pressure pressure,
+            List<CloudLayer> clouds,
+            List<String> phenomena,
+            String flightCategory
+    ) {}
 
     /**
      * Surface wind conditions.
+     *
+     * @param directionDeg wind direction in degrees true; {@code null} when wind is variable ({@code VRB})
+     * @param speedKt      mean wind speed in knots
+     * @param gustKt       gust speed in knots; {@code null} when no gusts are reported
+     * @param variable     {@code true} when the METAR contains {@code VRB} (variable wind direction)
      */
-    @Getter
-    @AllArgsConstructor
-    public static class Wind {
-        /** Wind direction in degrees true. {@code null} when wind is variable ({@code VRB}). */
-        private Integer directionDeg;
-
-        /** Mean wind speed in knots. */
-        private Integer speedKt;
-
-        /** Gust speed in knots. {@code null} when no gusts are reported. */
-        private Integer gustKt;
-
-        /** {@code true} when the METAR contains {@code VRB} (variable wind direction). */
-        private boolean variable;
-    }
+    public record Wind(
+            Integer directionDeg,
+            Integer speedKt,
+            Integer gustKt,
+            boolean variable
+    ) {}
 
     /**
      * Prevailing visibility.
+     *
+     * @param value visibility value as a string (e.g. {@code "6+"}, {@code "9999"}, {@code "0800"})
+     * @param cavok {@code true} when the METAR explicitly reports {@code CAVOK}
      */
-    @Getter
-    @AllArgsConstructor
-    public static class Visibility {
-        /**
-         * Visibility value as a string (e.g. {@code "6+"}, {@code "9999"}, {@code "0800"}).
-         * The unit depends on the issuing station (statute miles in the US, metres in ICAO format).
-         */
-        private String value;
-
-        /**
-         * {@code true} when the METAR explicitly reports {@code CAVOK}
-         * (Clouds and Visibility OK — no significant cloud below 5 000 ft, no CB, visibility ≥ 10 km).
-         */
-        private boolean cavok;
-    }
+    public record Visibility(
+            String value,
+            boolean cavok
+    ) {}
 
     /**
      * Air temperature and dew point.
+     *
+     * @param tempC     outside air temperature in degrees Celsius
+     * @param dewpointC dew-point temperature in degrees Celsius
      */
-    @Getter
-    @AllArgsConstructor
-    public static class Temperature {
-        /** Outside air temperature in degrees Celsius. */
-        private Double tempC;
-
-        /** Dew-point temperature in degrees Celsius. */
-        private Double dewpointC;
-    }
+    public record Temperature(
+            Double tempC,
+            Double dewpointC
+    ) {}
 
     /**
      * Altimeter setting / QNH.
+     *
+     * @param qnhHpa QNH in hectopascal (hPa / mbar), converted from the NOAA altimeter value
      */
-    @Getter
-    @AllArgsConstructor
-    public static class Pressure {
-        /** QNH in hectopascal (hPa / mbar), converted from the NOAA altimeter value. */
-        private Double qnhHpa;
-    }
+    public record Pressure(
+            Double qnhHpa
+    ) {}
 
     /**
      * A single cloud layer reported in the METAR.
+     *
+     * @param cover  sky coverage abbreviation: {@code FEW}, {@code SCT}, {@code BKN}, {@code OVC}
+     * @param baseFt cloud base height in feet above aerodrome elevation
      */
-    @Getter
-    @AllArgsConstructor
-    public static class CloudLayer {
-        /**
-         * Sky coverage abbreviation: {@code FEW} (1–2 oktas), {@code SCT} (3–4),
-         * {@code BKN} (5–7), {@code OVC} (8 / overcast).
-         */
-        private String cover;
-
-        /** Cloud base height in feet above aerodrome elevation. */
-        private Integer baseFt;
-    }
+    public record CloudLayer(
+            String cover,
+            Integer baseFt
+    ) {}
 }

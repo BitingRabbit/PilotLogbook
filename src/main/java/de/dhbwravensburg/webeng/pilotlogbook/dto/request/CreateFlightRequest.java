@@ -1,68 +1,62 @@
 package de.dhbwravensburg.webeng.pilotlogbook.dto.request;
 
-import de.dhbwravensburg.webeng.pilotlogbook.model.Flight.PilotFunction;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight.FlightType;
+import de.dhbwravensburg.webeng.pilotlogbook.model.Flight.PilotFunction;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 /**
  * Request body for creating a new flight log entry.
+ *
+ * @param originIcao      4-letter ICAO code of the departure airport
+ * @param destinationIcao 4-letter ICAO code of the destination airport
+ * @param departureTime   date and time of departure
+ * @param arrivalTime     date and time of arrival
+ * @param aircraftId      ID of the aircraft used for this flight
+ * @param passengers      number of passengers on board (0 or more)
+ * @param landings        number of landings performed (at least 1)
+ * @param pilotFunction   role of the pilot during this flight
+ * @param flightType      flight rules category (VFR or IFR)
+ * @param cost            optional cost associated with this flight (0.0 or more)
+ * @param remarks         optional free-text remarks, at most 500 characters
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class CreateFlightRequest {
+public record CreateFlightRequest(
 
-    /** 4-letter ICAO code of the departure airport */
-    @NotBlank(message = "Departure airport empty!")
-    @Size(min = 4, max = 4, message = "Departure airport needs to be exactly 4 characters")
-    private String departureIcao;
+        @NotBlank(message = "Departure airport empty!")
+        @Size(min = 4, max = 4, message = "Departure airport needs to be exactly 4 characters")
+        String originIcao,
 
-    /** 4-letter ICAO code of the destination airport */
-    @NotBlank(message = "Destination airport empty!")
-    @Size(min = 4, max = 4, message = "Destination airport needs to be exactly 4 characters")
-    private String destinationIcao;
+        @NotBlank(message = "Destination airport empty!")
+        @Size(min = 4, max = 4, message = "Destination airport needs to be exactly 4 characters")
+        String destinationIcao,
 
-    /** Date and time of departure */
-    @NotNull(message = "Departure time empty!")
-    private LocalDateTime departureTime;
+        @NotNull(message = "Departure time empty!")
+        LocalDateTime departureTime,
 
-    /** Date and time of arrival */
-    @NotNull(message = "Arrival time empty!")
-    private LocalDateTime arrivalTime;
+        @NotNull(message = "Arrival time empty!")
+        LocalDateTime arrivalTime,
 
-    /** ID of the aircraft used for this flight */
-    @NotNull(message = "Aircraft is required")
-    private Long aircraftId;
+        @NotNull(message = "Aircraft is required")
+        Long aircraftId,
 
-    /** Number of passengers on board (0 or more) */
-    @Min(value = 0, message = "Passengers cannot be negative")
-    private Integer passengers;
+        @Min(value = 0, message = "Passengers cannot be negative")
+        Integer passengers,
 
-    /** Number of landings performed (at least 1) */
-    @NotNull(message = "Landings empty!")
-    @Min(value = 1, message ="At least 1 landing required")
-    private Integer landings;
+        @NotNull(message = "Landings empty!")
+        @Min(value = 1, message = "At least 1 landing required")
+        Integer landings,
 
-    /** Role of the pilot during this flight */
-    @NotNull(message = "Pilot function empty!")
-    private PilotFunction pilotFunction;
+        @NotNull(message = "Pilot function empty!")
+        PilotFunction pilotFunction,
 
-    /** Flight rules category (VFR or IFR) */
-    @NotNull(message = "Flight Type empty!")
-    private FlightType flightType;
+        @NotNull(message = "Flight Type empty!")
+        FlightType flightType,
 
-    /** Optional cost associated with this flight (0.0 or more) */
-    @DecimalMin(value = "0.0", message = "Cost cannot be negative")
-    private BigDecimal cost;
+        @DecimalMin(value = "0.0", message = "Cost cannot be negative")
+        BigDecimal cost,
 
-    /** Optional free-text remarks, at most 500 characters */
-    @Size(max = 500, message = "Remarks must not exceed 500 characters!")
-    private String remarks;
-}
+        @Size(max = 500, message = "Remarks must not exceed 500 characters!")
+        String remarks
+) {}

@@ -3,33 +3,25 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft.EngineType;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * Response payload returned when reading aircraft data.
  *
  * <p>Contains only fields exposed by the API.
  * Use {@link #from(Aircraft)} to create an instance from a JPA entity.
+ *
+ * @param id            database identifier
+ * @param registration  ICAO/national registration mark (e.g. {@code D-ABCD})
+ * @param type          ICAO type designator (e.g. {@code C172})
+ * @param model         optional free-text model/variant name
+ * @param engineType    the engine/propulsion type of the aircraft
  */
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class AircraftResponse {
-
-    private Long id;
-
-    /** ICAO/national registration mark (e.g. {@code D-ABCD}) */
-    private String registration;
-
-    /** ICAO type designator (e.g. {@code C172}) */
-    private String type;
-
-    /** Optional free-text model/variant name */
-    private String model;
-
-    /** The engine/propulsion type of the aircraft */
-    private EngineType engineType;
+public record AircraftResponse(
+        Long id,
+        String registration,
+        String type,
+        String model,
+        EngineType engineType
+) {
 
     /**
      * Maps an {@link Aircraft} entity to this {@link AircraftResponse} DTO.
