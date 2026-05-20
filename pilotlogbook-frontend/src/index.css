@@ -1,11 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-/* Override browser autofill background to match dark glassmorphism inputs */
+@theme {
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-surface: #0b0b0d;
+  --color-surface-raised: #131316;
+  --color-border: #26262b;
+}
+
+html, body {
+  background-color: var(--color-surface);
+  color: #e4e4e7;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Leaflet — dark, minimal */
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background-color: #131316;
+  border-color: #26262b;
+  color: #d4d4d8;
+}
+.leaflet-bar a:hover {
+  background-color: #1c1c20;
+}
+.leaflet-bar {
+  border-color: #26262b;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.leaflet-tooltip {
+  background-color: #131316;
+  border: 1px solid #26262b;
+  color: #e4e4e7;
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 3px 6px;
+  box-shadow: none;
+}
+.leaflet-tooltip::before {
+  display: none;
+}
+.leaflet-control-attribution {
+  background-color: rgba(11, 11, 13, 0.7) !important;
+  color: #52525b !important;
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: #71717a !important;
+}
+.leaflet-container img {
+  max-width: none;
+}
+
+/* Autofill — match dark inputs */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
-  -webkit-text-fill-color: #fff !important;
+  -webkit-box-shadow: 0 0 0 1000px #131316 inset !important;
+  -webkit-text-fill-color: #e4e4e7 !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #26262b;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Selection */
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: #fafafa;
+}
