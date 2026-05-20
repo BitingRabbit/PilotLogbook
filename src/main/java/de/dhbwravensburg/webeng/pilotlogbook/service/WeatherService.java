@@ -115,7 +115,7 @@ public class WeatherService {
 
         List<String> phenomena = (noaa.getWxString() == null || noaa.getWxString().isBlank())
                 ? List.of()
-                // wxString contains space-separated codes, e.g. "-RA BR" → ["-RA", "BR"]
+                // wxString contains space-separated codes, e.g. "-RA BR" -> ["-RA", "BR"]
                 : Arrays.asList(noaa.getWxString().split("\\s+"));
 
         MetarDto.DecodedMetar decoded = new MetarDto.DecodedMetar(

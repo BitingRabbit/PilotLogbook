@@ -23,7 +23,7 @@ public class AuthController {
     private final AuthService authService;
 
     /**
-     * Checks whether a pilot account exists with given email
+     * Checks whether a pilot account exists with given email. Idempotent
      *
      * @param email email to look up
      * @return JSON with "exists" boolean
@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     /**
-     * Authenticates a pilot and returns a signed JWT (Authresponse)
+     * Authenticates a pilot and returns a signed JWT (Authresponse). Idempotent
      *
      * @param request validated login payload
      * @return token response with HTTP 200

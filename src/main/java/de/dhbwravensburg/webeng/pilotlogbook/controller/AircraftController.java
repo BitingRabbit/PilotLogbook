@@ -5,10 +5,10 @@ import de.dhbwravensburg.webeng.pilotlogbook.dto.request.UpdateAircraftRequest;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.response.AircraftResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.service.AircraftService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class AircraftController {
     private final AircraftService aircraftService;
 
     /**
-     * Creates a new aircraft for the authenticated pilot.
+     * Creates a new aircraft for the authenticated pilot..
      *
      * @param request aircraft details (registration, type, model, engine type)
      * @return the created aircraft with HTTP 201
@@ -34,8 +34,9 @@ public class AircraftController {
     @PostMapping
     public ResponseEntity<AircraftResponse> createAircraft(
             @Valid @RequestBody CreateAircraftRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(aircraftService.createAircraft(request));
+        AircraftResponse created = aircraftService.createAircraft(request);
+        return ResponseEntity.created(URI.create("/api/v1/aircraft/" + created.id()))
+                .body(created);
     }
 
     /**
@@ -60,7 +61,7 @@ public class AircraftController {
     }
 
     /**
-     * Partially updates an aircraft. Only provided fields are changed.
+     * Partially updates an aircraft. Only provided fields are changed. Idempotent
      *
      * @param id      aircraft ID
      * @param request fields to update

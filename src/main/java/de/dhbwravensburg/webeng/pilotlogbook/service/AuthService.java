@@ -49,15 +49,15 @@ public class AuthService {
      */
     @Transactional
     public AuthResponse register(@NonNull RegisterRequest request) {
-        if (pilotRepository.existsByEmail(request.getEmail())) {
+        if (pilotRepository.existsByEmail(request.email())) {
             throw new ConflictException("E-Mail already exists!");
         }
 
         Pilot pilot = new Pilot(
-                request.getFirstName(),
-                request.getLastName(),
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword())
+                request.firstName(),
+                request.lastName(),
+                request.email(),
+                passwordEncoder.encode(request.password())
         );
 
         try {
@@ -72,7 +72,7 @@ public class AuthService {
     }
 
     /**
-     * Authenticates an existing pilot and issues a JWT (login)
+     * Authenticates an existing pilot and issues a JWT (login). Idempotent
      *
      * @param request validated login data
      * @return authentication response containing a JWT
@@ -81,13 +81,13 @@ public class AuthService {
     public AuthResponse login(@NonNull LoginRequest request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
             );
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        Pilot pilot = pilotRepository.findByEmail(request.getEmail())
+        Pilot pilot = pilotRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         String token = jwtService.generateToken(pilot);

@@ -36,25 +36,33 @@ public class WeatherSnapshotService {
     /**
      * Asynchronously captures departure and arrival weather snapshots for the given flight.
      * Each snapshot is saved as PENDING first, then updated to AVAILABLE or UNAVAILABLE
-     * depending on whether the noaaWeatherApi returns data. One snapshot failing does not affect the other.
+     * depending on whether the noaaWeatherApi returns data. One snapshot failing does not affect the other. Idempotent
      *
      * @param flightId id of the flight to capture snapshots for
      */
     @Async
+    @Transactional
     public void captureSnapshotsForFlight(Long flightId) {
         // Load directly by ID — security context is not available in async threads
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flight not found: " + flightId));
 
+        // Look up existing records so we never create duplicate (flight_id, phase_type) rows,
+        // even if this method is accidentally invoked more than once for the same flight.
+        WeatherSnapshot existingDep = weatherSnapshotRepository
+                .findByFlightIdAndPhaseType(flightId, PhaseType.DEPARTURE).orElse(null);
+        WeatherSnapshot existingArr = weatherSnapshotRepository
+                .findByFlightIdAndPhaseType(flightId, PhaseType.ARRIVAL).orElse(null);
+
         captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getOriginAirport().getIcao(),
-                flight.getDepartureTime(), null);
+                flight.getDepartureTime(), existingDep);
         captureOrUpdate(flight, PhaseType.ARRIVAL, flight.getDestinationAirport().getIcao(),
-                flight.getArrivalTime(), null);
+                flight.getArrivalTime(), existingArr);
     }
 
     /**
      * Synchronously re-fetches snapshots for a flight whose initial async capture failed.
-     * Snapshots already in {@link Status#AVAILABLE} are left untouched. 
+     * Snapshots already in {@link Status#AVAILABLE} are left untouched. Idempotent
      *
      * @param flightId id of the flight to refresh
      * @return updated snapshot responses (departure + arrival)
@@ -65,7 +73,11 @@ public class WeatherSnapshotService {
                 .orElseThrow(() -> new ResourceNotFoundException("Flight not found: " + flightId));
 
         Map<PhaseType, WeatherSnapshot> existing = flight.getWeatherSnapshots().stream()
-                .collect(Collectors.toMap(WeatherSnapshot::getPhaseType, s -> s));
+                .collect(Collectors.toMap(
+                        WeatherSnapshot::getPhaseType,
+                        s -> s,
+                        // Keep the most recently created entry if somehow duplicates exist in DB
+                        (a, b) -> a.getId() > b.getId() ? a : b));
 
         captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getOriginAirport().getIcao(),
                 flight.getDepartureTime(), existing.get(PhaseType.DEPARTURE));
@@ -81,7 +93,7 @@ public class WeatherSnapshotService {
 
     /**
      * Creates a new snapshot or updates an existing one with fresh METAR data.
-     * If the existing snapshot is already AVAILABLE, it is left untouched.
+     * If the existing snapshot is already AVAILABLE, it is left untouched. Idempotent
      */
     private void captureOrUpdate(Flight flight, PhaseType phase, String icao,
                                   LocalDateTime time, WeatherSnapshot existing) {
@@ -89,20 +101,21 @@ public class WeatherSnapshotService {
             return;
         }
 
-        WeatherSnapshot snapshot = (existing != null)
-                ? existing
-                : weatherSnapshotRepository.save(new WeatherSnapshot(flight, phase, icao));
+        WeatherSnapshot snapshot = existing;
+        if (snapshot == null) {
+            snapshot = new WeatherSnapshot(phase, icao);
+            flight.addWeatherSnapshot(snapshot);
+            snapshot = weatherSnapshotRepository.save(snapshot);
+        }
 
         try {
             MetarDto metar = weatherService.getHistoricalMetar(icao, time);
-            String decodedMetarJson = objectMapper.writeValueAsString(metar.getDecodedMetar());
-            snapshot.markAvailable(metar.getRawMetar(), decodedMetarJson);
+            String decodedMetarJson = objectMapper.writeValueAsString(metar.decodedMetar());
+            snapshot.markAvailable(metar.rawMetar(), decodedMetarJson);
         } catch (WeatherUnavailableException | JsonProcessingException e) {
             log.warn("Failed to capture {} snapshot for flight {} ({}): {}",
                     phase, flight.getId(), icao, e.getMessage());
             snapshot.markUnavailable();
         }
-
-        weatherSnapshotRepository.save(snapshot);
     }
 }

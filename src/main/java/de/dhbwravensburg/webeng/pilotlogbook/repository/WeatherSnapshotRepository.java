@@ -18,4 +18,11 @@ public interface WeatherSnapshotRepository extends JpaRepository<WeatherSnapshot
      * @return snapshots for the flight, empty list if none exist
      */
     List<WeatherSnapshot> findByFlightId(Long flightId);
+
+    /**
+     * Returns the snapshot for a specific flight and phase, if it exists.
+     * Used to avoid duplicate creation in the async capture flow.
+     */
+    java.util.Optional<WeatherSnapshot> findByFlightIdAndPhaseType(
+            Long flightId, WeatherSnapshot.PhaseType phaseType);
 }

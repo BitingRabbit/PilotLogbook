@@ -13,7 +13,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,12 +22,12 @@ public class AirportService {
 
     private final AirportRepository airportRepository;
     private final RestClient ninjaAirportRestClient;
-    private static final Pattern ICAO_PATTERN = Pattern.compile("^[A-Z]{4}$");
+    private static final java.util.regex.Pattern ICAO_PATTERN = java.util.regex.Pattern.compile("^[A-Z]{4}$");
 
     /**
      * Returns airport data for the given ICAO code.
      * First checks the local DB cache; if not found, fetches from api-ninjas,
-     * persists the result, and returns it.
+     * persists the result, and returns it. Idempotent
      *
      * @param icao 4-letter uppercase ICAO code
      * @return cached or freshly fetched airport entity
@@ -94,10 +95,10 @@ public class AirportService {
      * Ninja delivers latitude/longitude as {@code Double}, size as a lowercase string.
      */
     private Airport mapToEntity(NinjaAirportDto dto) {
-        List<Runway> runways = dto.getRunways() == null ? List.of() :
+        Set<Runway> runways = dto.getRunways() == null ? Set.of() :
                 dto.getRunways().stream()
                         .map(r -> new Runway(r.getLength(), r.getWidth(), r.getHasLights()))
-                        .toList();
+                        .collect(Collectors.toSet());
 
         return Airport.builder()
                 .icao(dto.getIcao())

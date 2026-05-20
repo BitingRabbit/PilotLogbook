@@ -23,7 +23,7 @@ import java.util.List;
  * REST endpoints for METAR weather data and per-flight weather snapshots.
  */
 @RestController
-@RequestMapping("/api/v1/metar")
+@RequestMapping("/api/v1/metars")
 @RequiredArgsConstructor
 @Validated
 public class WeatherController {
@@ -54,7 +54,7 @@ public class WeatherController {
 
     /**
      * Re-fetches weather snapshots for a flight. snapshots already in {@code AVAILABLE} state
-     * remain untouched, only {@code PENDING} or {@code UNAVAILABLE} snapshots are retried.
+     * remain untouched, only {@code PENDING} or {@code UNAVAILABLE} snapshots are retried. Idempotent
      *
      * @param flightId id of the flight whose snapshots should be refreshed
      * @return updated departure and arrival snapshot responses

@@ -43,16 +43,16 @@ public class AircraftService {
     public AircraftResponse createAircraft(CreateAircraftRequest request) {
         Pilot pilot = currentPilotProvider.get();
 
-        if (aircraftRepository.existsByRegistrationAndPilotId(request.getRegistration(), pilot.getId())) {
+        if (aircraftRepository.existsByRegistrationAndPilotId(request.registration(), pilot.getId())) {
             throw new ConflictException("Aircraft with this registration already exists.");
         }
 
         Aircraft aircraft = new Aircraft(
                 pilot,
-                request.getRegistration().toUpperCase(),
-                request.getType().toUpperCase(),
-                request.getModel(),
-                request.getEngineType()
+                request.registration().toUpperCase(),
+                request.type().toUpperCase(),
+                request.model(),
+                request.engineType()
         );
 
         return AircraftResponse.from(aircraftRepository.save(aircraft));
@@ -101,8 +101,8 @@ public class AircraftService {
         Pilot pilot = currentPilotProvider.get();
         Aircraft aircraft = currentAircraftProvider.get(aircraftId, pilot.getId());
 
-        if (request.getRegistration() != null) {
-            String newReg = request.getRegistration().toUpperCase();
+        if (request.registration() != null) {
+            String newReg = request.registration().toUpperCase();
             if (!newReg.equals(aircraft.getRegistration()) &&
                     aircraftRepository.existsByRegistrationAndPilotId(newReg, pilot.getId())) {
                 throw new ConflictException("Aircraft with this registration already exists.");
@@ -110,16 +110,16 @@ public class AircraftService {
             aircraft.setRegistration(newReg);
         }
 
-        if (request.getType() != null) {
-            aircraft.setType(request.getType().toUpperCase());
+        if (request.type() != null) {
+            aircraft.setType(request.type().toUpperCase());
         }
 
-        if (request.getModel() != null) {
-            aircraft.setModel(request.getModel());
+        if (request.model() != null) {
+            aircraft.setModel(request.model());
         }
 
-        if (request.getEngineType() != null) {
-            aircraft.setEngineType(request.getEngineType());
+        if (request.engineType() != null) {
+            aircraft.setEngineType(request.engineType());
         }
 
         return AircraftResponse.from(aircraftRepository.save(aircraft));

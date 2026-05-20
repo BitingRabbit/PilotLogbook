@@ -7,11 +7,11 @@ import de.dhbwravensburg.webeng.pilotlogbook.dto.response.FlightResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.service.FlightService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -35,8 +35,9 @@ public class FlightController {
     @PostMapping
     public ResponseEntity<FlightResponse> createFlight(
             @Valid @RequestBody CreateFlightRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(flightService.createFlight(request));
+        FlightResponse created = flightService.createFlight(request);
+        return ResponseEntity.created(URI.create("/api/v1/flights/" + created.getId()))
+                .body(created);
     }
 
     /**
@@ -61,7 +62,7 @@ public class FlightController {
     }
 
     /**
-     * Partially updates a flight. Only provided fields are changed.
+     * Partially updates a flight. Only provided fields are changed. Idempotent
      * Arrival time must remain after departure time after applying the update.
      *
      * @param id      flight ID

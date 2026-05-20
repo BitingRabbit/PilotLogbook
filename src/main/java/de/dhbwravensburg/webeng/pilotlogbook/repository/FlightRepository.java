@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,8 +31,8 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
      * @param pilotId the pilots id
      * @return list of flights flown by the pilot
      */
-    @EntityGraph(attributePaths = { "originAirport", "originAirport.runways" ,"destinationAirport",
-            "destinationAirport.runways", "aircraft" }
+    @EntityGraph(attributePaths = { "originAirport", "originAirport.runways", "destinationAirport",
+            "destinationAirport.runways", "aircraft", "weatherSnapshots" }
     )
     List<Flight> findByPilotId(Long pilotId);
 
@@ -45,25 +46,25 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
      * @param month month of the flight (dep)
      * @return list of flights matching the criteria
      */
-    @EntityGraph(attributePaths = { "originAirport", "originAirport.runways" ,"destinationAirport",
-            "destinationAirport.runways", "aircraft" }
+    @EntityGraph(attributePaths = { "originAirport", "originAirport.runways", "destinationAirport",
+            "destinationAirport.runways", "aircraft", "weatherSnapshots" }
     )
     @Query("""
         SELECT f FROM Flight f
-        WHERE (:dep IS NULL OR LOWER(f.originAirport.icao) = LOWER(:dep))
-          AND (:dest IS NULL OR LOWER(f.destinationAirport.icao) = LOWER(:dest))
+        WHERE (:dep IS NULL OR f.originAirport.icao = :dep)
+          AND (:dest IS NULL OR f.destinationAirport.icao = :dest)
           AND (:duration IS NULL OR f.durationInMinutes = :duration)
           AND (:month IS NULL OR MONTH(f.departureTime) = :month)
           AND (f.pilot.id = :pilotId)
         ORDER BY f.departureTime DESC
-        LIMIT 10
     """)
     List<Flight> findByFilters(
             @Param("dep") String dep,
             @Param("dest") String dest,
             @Param("duration") Long duration,
             @Param("month") Integer month,
-            @Param("pilotId") Long pilotId
+            @Param("pilotId") Long pilotId,
+            Pageable pageable
     );
 
     /**

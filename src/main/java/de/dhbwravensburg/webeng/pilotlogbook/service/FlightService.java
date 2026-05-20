@@ -13,6 +13,7 @@ import de.dhbwravensburg.webeng.pilotlogbook.repository.FlightRepository;
 import de.dhbwravensburg.webeng.pilotlogbook.util.CurrentAircraftProvider;
 import de.dhbwravensburg.webeng.pilotlogbook.util.CurrentFlightProvider;
 import de.dhbwravensburg.webeng.pilotlogbook.util.CurrentPilotProvider;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -50,26 +51,26 @@ public class FlightService {
     @Transactional
     public FlightResponse createFlight(CreateFlightRequest req) {
         Pilot pilot = currentPilotProvider.get();
-        Aircraft aircraft = currentAircraftProvider.get(req.getAircraftId(), pilot.getId());
+        Aircraft aircraft = currentAircraftProvider.get(req.aircraftId(), pilot.getId());
 
         /* Validate wether ICAO codes are correct (Pattern) and existing */
-        Airport dep = airportService.validateIcaoAndGetOrFetch(req.getDepartureIcao());
-        Airport arr = airportService.validateIcaoAndGetOrFetch(req.getDestinationIcao());
+        Airport dep = airportService.validateIcaoAndGetOrFetch(req.originIcao());
+        Airport arr = airportService.validateIcaoAndGetOrFetch(req.destinationIcao());
 
 
         Flight flight = Flight.builder()
                 .pilot(pilot)
                 .originAirport(dep)
                 .destinationAirport(arr)
-                .departureTime(req.getDepartureTime())
-                .arrivalTime(req.getArrivalTime())
+                .departureTime(req.departureTime())
+                .arrivalTime(req.arrivalTime())
                 .aircraft(aircraft)
-                .passengers(req.getPassengers())
-                .landings(req.getLandings())
-                .pilotFunction(req.getPilotFunction())
-                .flightType(req.getFlightType())
-                .cost(req.getCost())
-                .remarks(req.getRemarks())
+                .passengers(req.passengers())
+                .landings(req.landings())
+                .pilotFunction(req.pilotFunction())
+                .flightType(req.flightType())
+                .cost(req.cost())
+                .remarks(req.remarks())
                 .build();
 
         Flight saved = flightRepository.save(flight);
@@ -133,11 +134,11 @@ public class FlightService {
 
         Pilot pilot = currentPilotProvider.get();
 
-        String depFilter  = (dep != null && !dep.isBlank()) ? dep.trim() : null;
-        String destFilter = (dest != null && !dest.isBlank()) ? dest.trim() : null;
+        String depFilter  = (dep != null && !dep.isBlank()) ? dep.trim().toUpperCase() : null;
+        String destFilter = (dest != null && !dest.isBlank()) ? dest.trim().toUpperCase() : null;
 
         return flightRepository.findByFilters(
-                depFilter, destFilter, duration, month, pilot.getId())
+                depFilter, destFilter, duration, month, pilot.getId(), PageRequest.of(0, 10))
                 .stream()
                 .map(FlightResponse::from)
                 .toList();
@@ -159,26 +160,26 @@ public class FlightService {
 
         Flight flight = currentFlightProvider.get(flightId, pilot.getId());
 
-        if (request.getDepartureIcao() != null) {
+        if (request.originIcao() != null) {
             /* Validate wether ICAO codes are correct (Pattern) and existing */
-            Airport dep = airportService.validateIcaoAndGetOrFetch(request.getDepartureIcao());
+            Airport dep = airportService.validateIcaoAndGetOrFetch(request.originIcao());
             flight.setOriginAirport(dep);
             deleteWeatherSnapshot(PhaseType.DEPARTURE, flight);
         }
 
-        if (request.getDestinationIcao() != null) {
+        if (request.destinationIcao() != null) {
             /* Validate wether ICAO codes are correct (Pattern) and existing */
-            Airport arr = airportService.validateIcaoAndGetOrFetch(request.getDestinationIcao());
+            Airport arr = airportService.validateIcaoAndGetOrFetch(request.destinationIcao());
             flight.setDestinationAirport(arr);
             deleteWeatherSnapshot(PhaseType.ARRIVAL, flight);
         }
-        if (request.getDepartureTime() != null) {
-            flight.setDepartureTime(request.getDepartureTime());
+        if (request.departureTime() != null) {
+            flight.setDepartureTime(request.departureTime());
             deleteWeatherSnapshot(PhaseType.DEPARTURE, flight);
         }
 
-        if (request.getArrivalTime() != null) {
-            flight.setArrivalTime(request.getArrivalTime());
+        if (request.arrivalTime() != null) {
+            flight.setArrivalTime(request.arrivalTime());
             deleteWeatherSnapshot(PhaseType.ARRIVAL, flight);
         }
 
@@ -186,17 +187,17 @@ public class FlightService {
             throw new IllegalArgumentException("Arrival time must be after departure time");
         }
 
-        if (request.getAircraftId() != null) {
-            Aircraft aircraft = currentAircraftProvider.get(request.getAircraftId(), pilot.getId());
+        if (request.aircraftId() != null) {
+            Aircraft aircraft = currentAircraftProvider.get(request.aircraftId(), pilot.getId());
             flight.setAircraft(aircraft);
         }
 
-        if (request.getPassengers()    != null) flight.setPassengers(request.getPassengers());
-        if (request.getLandings()      != null) flight.setLandings(request.getLandings());
-        if (request.getPilotFunction() != null) flight.setPilotFunction(request.getPilotFunction());
-        if (request.getFlightType()    != null) flight.setFlightType(request.getFlightType());
-        if (request.getCost()          != null) flight.setCost(request.getCost());
-        if (request.getRemarks()       != null) flight.setRemarks(request.getRemarks());
+        if (request.passengers()    != null) flight.setPassengers(request.passengers());
+        if (request.landings()      != null) flight.setLandings(request.landings());
+        if (request.pilotFunction() != null) flight.setPilotFunction(request.pilotFunction());
+        if (request.flightType()    != null) flight.setFlightType(request.flightType());
+        if (request.cost()          != null) flight.setCost(request.cost());
+        if (request.remarks()       != null) flight.setRemarks(request.remarks());
 
         return FlightResponse.from(flightRepository.save(flight));
     }
