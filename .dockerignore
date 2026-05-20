@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+
+# Build artifacts and IDE files
+target/
+.idea/
+*.iml
+.vscode/
+.git/
+.gitignore
+
+# Frontend (separate image)
+pilotlogbook-frontend/node_modules/
+pilotlogbook-frontend/dist/
