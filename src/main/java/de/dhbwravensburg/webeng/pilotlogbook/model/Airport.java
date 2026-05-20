@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * JPA entity representing an airport.
@@ -66,7 +66,7 @@ public class Airport {
     @Setter
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "airport_runways", joinColumns = @JoinColumn(name = "airport_id"))
-    private List<Runway> runways = new ArrayList<>();
+    private Set<Runway> runways = new HashSet<>();
 
     /** Timestamp of the last successful fetch from the external API. */
     @Column(nullable = false)
@@ -88,7 +88,7 @@ public class Airport {
                    Double longitude,
                    String timezone,
                    Size size,
-                   List<Runway> runways) {
+                   Set<Runway> runways) {
         this.icao = icao.toUpperCase();
         this.iata = (iata == null || iata.isBlank()) ? null : iata.toUpperCase();
         this.name = name;

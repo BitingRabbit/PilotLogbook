@@ -90,15 +90,14 @@ public class WeatherSnapshot {
      * Creates a new snapshot in {@link Status#PENDING} state. The actual METAR
      * data is filled in later via {@link #markAvailable(String, String)},
      * or the snapshot is finalised via {@link #markUnavailable()}.
+     * <p>
+     * The owning flight is wired in via {@link Flight#addWeatherSnapshot(WeatherSnapshot)},
+     * which keeps both sides of the bidirectional relationship in sync.
      *
-     * @param flight        the owning flight
      * @param phaseType     departure or arrival
      * @param icao          4-letter ICAO code of the observed airport
      */
-    public WeatherSnapshot(Flight flight,
-                           PhaseType phaseType,
-                           String icao) {
-        this.flight = flight;
+    public WeatherSnapshot(PhaseType phaseType, String icao) {
         this.phaseType = phaseType;
         this.icao = icao;
         this.status = Status.PENDING;
@@ -120,6 +119,15 @@ public class WeatherSnapshot {
     /** Marks this snapshot as permanently {@link Status#UNAVAILABLE} */
     public void markUnavailable() {
         this.status = Status.UNAVAILABLE;
+    }
+
+    /**
+     * Package-private back-reference setter. Callers must go through
+     * {@link Flight#addWeatherSnapshot(WeatherSnapshot)} / {@link Flight#removeWeatherSnapshot(WeatherSnapshot)}
+     * to keep both sides of the bidirectional relationship in sync.
+     */
+    void setFlight(Flight flight) {
+        this.flight = flight;
     }
 
     /** Sets {@link #createdAt} to the current time before the first database insert */

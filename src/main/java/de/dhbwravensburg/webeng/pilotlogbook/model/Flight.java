@@ -9,8 +9,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * JPA entity representing a single flight entry in the pilot's logbook.
@@ -117,7 +117,7 @@ public class Flight {
             fetch = FetchType.LAZY
     )
     @Setter(AccessLevel.NONE)
-    private List<WeatherSnapshot> weatherSnapshots = new ArrayList<>();
+    private Set<WeatherSnapshot> weatherSnapshots = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "origin_airport_id", nullable = false)
@@ -196,5 +196,24 @@ public class Flight {
         if (!arrivalTime.isAfter(departureTime))
             throw new IllegalArgumentException("Arrival time must be after departure time");
         this.durationInMinutes = Duration.between(departureTime, arrivalTime).toMinutes();
+    }
+
+    /**
+     * Adds a snapshot and synchronises the inverse side. Prefer this over
+     * {@code getWeatherSnapshots().add(...)} so both sides of the
+     * bidirectional relationship stay in sync within the same transaction.
+     */
+    public void addWeatherSnapshot(WeatherSnapshot snapshot) {
+        weatherSnapshots.add(snapshot);
+        snapshot.setFlight(this);
+    }
+
+    /**
+     * Removes a snapshot and clears its back-reference. Combined with
+     * {@code orphanRemoval = true} this also deletes the row on flush.
+     */
+    public void removeWeatherSnapshot(WeatherSnapshot snapshot) {
+        weatherSnapshots.remove(snapshot);
+        snapshot.setFlight(null);
     }
 }
