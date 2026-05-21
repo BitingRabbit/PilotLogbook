@@ -1,134 +1,69 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { Plane, ArrowRight } from 'lucide-react'
 
-const floatingPlane = {
-  animate: {
-    y: [0, -18, 0],
-    rotate: [0, 2, -2, 0],
-    transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
-  },
-}
-
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.15 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
-}
+const FEATURES = [
+  { label: 'Flight log',       desc: 'Per-flight times, routes, aircraft, remarks.' },
+  { label: 'Live weather',     desc: 'Live and historical METAR for any ICAO.' },
+  { label: 'Snapshots',        desc: 'Departure and arrival weather captured automatically.' },
+  { label: 'Map view',         desc: 'See every leg you have flown on one map.' },
+]
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl"
-          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl"
-          animate={{ scale: [1.2, 1, 1.2], x: [0, -20, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-cyan-500/5 blur-3xl"
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
-
-      {/* Stars / particles */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-white/20 rounded-full"
-          style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-          animate={{ opacity: [0.1, 0.6, 0.1] }}
-          transition={{ duration: 2 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 2 }}
-        />
-      ))}
-
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-          className="text-center max-w-2xl"
-        >
-          {/* Floating plane icon */}
-          <motion.div
-            variants={floatingPlane}
-            animate="animate"
-            className="text-7xl mb-8 inline-block"
+    <div className="min-h-dvh bg-zinc-950 text-zinc-100 flex flex-col">
+      <header className="border-b border-zinc-800">
+        <div className="max-w-screen-md mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Plane size={16} className="text-amber-500" />
+            <span className="font-mono text-sm">pilotlogbook</span>
+          </div>
+          <Link
+            to="/email"
+            className="text-sm text-zinc-400 hover:text-amber-400 transition-colors"
           >
-            ✈️
-          </motion.div>
+            Sign in
+          </Link>
+        </div>
+      </header>
 
-          <motion.h1
-            variants={fadeUp}
-            className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent leading-tight mb-6"
+      <main className="flex-1">
+        <section className="max-w-screen-md mx-auto px-6 py-20">
+          <p className="font-mono text-xs uppercase tracking-wider text-amber-500 mb-4">
+            Digital logbook for pilots
+          </p>
+          <h1 className="text-4xl md:text-5xl text-zinc-100 mb-4 leading-tight">
+            Log your flights.<br />
+            Track your hours.
+          </h1>
+          <p className="text-zinc-400 max-w-md mb-8">
+            A no-nonsense logbook with route maps and METAR snapshots. Built for private and commercial pilots.
+          </p>
+
+          <Link
+            to="/email"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-500 text-zinc-950 text-sm font-medium hover:bg-amber-400 transition-colors"
           >
-            Pilot Logbook
-          </motion.h1>
+            Get started
+            <ArrowRight size={14} />
+          </Link>
+        </section>
 
-          <motion.p
-            variants={fadeUp}
-            className="text-lg md:text-xl text-blue-200/70 mb-4 leading-relaxed"
-          >
-            Track your flights. Log your hours. Stay current.
-          </motion.p>
-
-          <motion.p
-            variants={fadeUp}
-            className="text-sm text-blue-300/40 mb-10"
-          >
-            The modern digital logbook for private and commercial pilots.
-          </motion.p>
-
-          <motion.div variants={fadeUp}>
-            <Link
-              to="/email"
-              className="group relative inline-flex items-center gap-3 px-10 py-4 text-lg font-semibold text-white rounded-2xl
-                         bg-gradient-to-r from-blue-600 to-cyan-500
-                         shadow-lg shadow-blue-500/25
-                         hover:shadow-xl hover:shadow-blue-500/40
-                         hover:scale-105 active:scale-100
-                         transition-all duration-300 ease-out"
-            >
-              <span>Get Started</span>
-              <motion.span
-                className="inline-block"
-                animate={{ x: [0, 4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                →
-              </motion.span>
-            </Link>
-          </motion.div>
-
-          {/* Feature pills */}
-          <motion.div
-            variants={fadeUp}
-            className="mt-16 flex flex-wrap justify-center gap-3"
-          >
-            {['Flight Logging', 'Hour Tracking', 'PDF Export', 'Multi-Aircraft'].map((f) => (
-              <span
-                key={f}
-                className="px-4 py-2 text-xs font-medium text-blue-300/60 border border-blue-500/20 rounded-full
-                           backdrop-blur-sm bg-white/5"
-              >
-                {f}
-              </span>
+        <section className="max-w-screen-md mx-auto px-6 pb-20">
+          <h2 className="text-xs uppercase tracking-wider text-zinc-500 mb-4">Features</h2>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+            {FEATURES.map(f => (
+              <div key={f.label} className="border-l border-zinc-800 pl-4">
+                <dt className="text-sm text-zinc-200 mb-0.5">{f.label}</dt>
+                <dd className="text-sm text-zinc-500">{f.desc}</dd>
+              </div>
             ))}
-          </motion.div>
-        </motion.div>
-      </div>
+          </dl>
+        </section>
+      </main>
+
+      <footer className="border-t border-zinc-800 py-4 text-center text-xs text-zinc-600">
+        <span className="font-mono">DHBW Ravensburg · WebEng</span>
+      </footer>
     </div>
   )
 }
-
