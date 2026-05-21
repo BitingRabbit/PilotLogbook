@@ -1,5 +1,9 @@
 import api from "./axios"
-import type { LoginRequest, RegisterRequest, AuthResponse } from "../types/auth.ts";
+import type {
+    LoginRequest,
+    RegisterRequest,
+    AuthResponse,
+} from "../types/auth"
 
 export const checkEmail = (email: string) =>
     api.get<{ exists: boolean }>("/api/v1/auth/check-email", { params: { email } })
