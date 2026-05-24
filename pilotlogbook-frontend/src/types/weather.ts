@@ -1,27 +1,27 @@
 export interface Wind {
   directionDeg: number | null
-  speedKt: number
+  speedKt: number | null
   gustKt: number | null
   variable: boolean
 }
 
 export interface Visibility {
-  value: string
+  value: string | null
   cavok: boolean
 }
 
 export interface Temperature {
-  tempC: number
-  dewpointC: number
+  tempC: number | null
+  dewpointC: number | null
 }
 
 export interface Pressure {
-  qnhHpa: number
+  qnhHpa: number | null
 }
 
 export interface CloudLayer {
-  cover: string
-  baseFt: number
+  cover: string | null
+  baseFt: number | null
 }
 
 export interface DecodedMetar {
@@ -31,7 +31,7 @@ export interface DecodedMetar {
   pressure: Pressure
   clouds: CloudLayer[]
   phenomena: string[]
-  flightCategory: string
+  flightCategory: string | null
 }
 
 export interface MetarDto {

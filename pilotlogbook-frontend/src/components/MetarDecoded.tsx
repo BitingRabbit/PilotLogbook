@@ -10,13 +10,13 @@ export default function MetarDecoded({ metar }: MetarDecodedProps) {
   if (!d) return null
 
   const wind = d.wind?.variable
-    ? `VRB ${d.wind.speedKt} kt`
+    ? `VRB ${d.wind.speedKt ?? '—'} kt`
     : `${d.wind?.directionDeg ?? '—'}° / ${d.wind?.speedKt ?? '—'} kt${d.wind?.gustKt ? ` G${d.wind.gustKt}` : ''}`
 
   const visibility = d.visibility?.cavok ? 'CAVOK' : (d.visibility?.value ?? '—')
 
   const clouds = d.clouds?.length > 0
-    ? d.clouds.map(c => `${c.cover} ${c.baseFt}ft`).join(', ')
+    ? d.clouds.map(c => `${c.cover ?? '?'} ${c.baseFt ?? '?'}ft`).join(', ')
     : 'Clear'
 
   return (
