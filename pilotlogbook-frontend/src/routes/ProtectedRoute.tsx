@@ -6,4 +6,3 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth()
   return isAuthenticated ? <>{children}</> : <Navigate to="/email" replace />
 }
-

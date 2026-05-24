@@ -4,6 +4,7 @@ import EmailPage from '../pages/EmailPage'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
 import DashboardPage from '../pages/DashboardPage'
+import DetailedPage from '../pages/DetailedPage'
 import ProtectedRoute from './ProtectedRoute'
 
 export default function AppRouter() {
@@ -14,12 +15,10 @@ export default function AppRouter() {
         <Route path="/email" element={<EmailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute><DashboardPage /></ProtectedRoute>
-        } />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/flights" element={<ProtectedRoute><DetailedPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )
 }
-
