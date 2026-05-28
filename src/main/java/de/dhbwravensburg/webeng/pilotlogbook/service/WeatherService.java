@@ -1,12 +1,13 @@
 package de.dhbwravensburg.webeng.pilotlogbook.service;
 
 import de.dhbwravensburg.webeng.pilotlogbook.dto.external.NoaaMetarDto;
-import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarDto;
+import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.exception.WeatherUnavailableException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class WeatherService {
      * @return parsed METAR with raw string and decoded fields
      * @throws WeatherUnavailableException if NOAA returns an error or no data
      */
-    public MetarDto getLiveMetar(String icao) {
+    public MetarResponse getLiveMetar(String icao) {
         return callNoaa(icao, null);
     }
 
@@ -43,7 +44,7 @@ public class WeatherService {
      * @return parsed METAR with raw string and decoded fields
      * @throws WeatherUnavailableException if NOAA returns an error or no data
      */
-    public MetarDto getHistoricalMetar(String icao, LocalDateTime time) {
+    public MetarResponse getHistoricalMetar(String icao, LocalDateTime time) {
         return callNoaa(icao, time);
     }
 
@@ -57,30 +58,36 @@ public class WeatherService {
      * @param time UTC time for historical lookup, or {@code null} for the latest METAR
      * @throws WeatherUnavailableException if the API returns an error or an empty result
      */
-    private MetarDto callNoaa(String icao, LocalDateTime time) {
+    private MetarResponse callNoaa(String icao, LocalDateTime time) {
         /* Validate wether ICAO codes are correct (Pattern) and existing */
         airportService.validateIcaoAndGetOrFetch(icao);
 
         NoaaMetarDto[] response;
 
-        if (time == null) {
-            response = noaaWeatherRestClient.get()
-                    .uri("/metar?ids={icao}&format=json&hours=1", icao)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, res) -> {
-                        throw new WeatherUnavailableException("NOAA API error: " + res.getStatusCode());
-                    })
-                    .body(NoaaMetarDto[].class);
-        } else {
-            // NOAA expects UTC — aviation times are always UTC by convention
-            String dateParam = time.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
-            response = noaaWeatherRestClient.get()
-                    .uri("/metar?ids={icao}&format=json&date={date}", icao, dateParam)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, res) -> {
-                        throw new WeatherUnavailableException("NOAA API error: " + res.getStatusCode());
-                    })
-                    .body(NoaaMetarDto[].class);
+        try {
+            if (time == null) {
+                response = noaaWeatherRestClient.get()
+                        .uri("/metar?ids={icao}&format=json&hours=1", icao)
+                        .retrieve()
+                        .onStatus(HttpStatusCode::isError, (req, res) -> {
+                            throw new WeatherUnavailableException("NOAA API error: " + res.getStatusCode());
+                        })
+                        .body(NoaaMetarDto[].class);
+            } else {
+                // NOAA expects UTC — aviation times are always UTC by convention
+                String dateParam = time.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
+                response = noaaWeatherRestClient.get()
+                        .uri("/metar?ids={icao}&format=json&date={date}", icao, dateParam)
+                        .retrieve()
+                        .onStatus(HttpStatusCode::isError, (req, res) -> {
+                            throw new WeatherUnavailableException("NOAA API error: " + res.getStatusCode());
+                        })
+                        .body(NoaaMetarDto[].class);
+            }
+        } catch (RestClientException ex) {
+            // Transport-level failures (read timeout, connection refused, …) surface as
+            // ResourceAccessException before any status is read — map them to a clean 503.
+            throw new WeatherUnavailableException("NOAA API unreachable for " + icao);
         }
 
         if (response == null || response.length == 0) {
@@ -91,12 +98,12 @@ public class WeatherService {
     }
 
     /**
-     * Maps a raw NOAA response object to the internal {@link MetarDto} representation.
+     * Maps a raw NOAA response object to the internal {@link MetarResponse} representation.
      *
      * @param noaa the raw NOAA response
-     * @return structured MetarDto with raw string and decoded fields
+     * @return structured MetarResponse with raw string and decoded fields
      */
-    private MetarDto mapToMetarDto(NoaaMetarDto noaa) {
+    private MetarResponse mapToMetarDto(NoaaMetarDto noaa) {
         // CAVOK (Clouds and Visibility OK) means no significant weather — skip cloud/visibility details
         boolean cavok = noaa.getRawOb() != null && noaa.getRawOb().contains("CAVOK");
         // wdir is null when wind is variable (VRB), also check raw string as fallback
@@ -108,9 +115,9 @@ public class WeatherService {
                 ? Instant.ofEpochSecond(noaa.getObsTime()).atZone(ZoneOffset.UTC).toLocalDateTime()
                 : null;
 
-        List<MetarDto.CloudLayer> clouds = noaa.getClouds() == null ? List.of() :
+        List<MetarResponse.CloudLayer> clouds = noaa.getClouds() == null ? List.of() :
                 noaa.getClouds().stream()
-                        .map(c -> new MetarDto.CloudLayer(c.getCover(), c.getBase()))
+                        .map(c -> new MetarResponse.CloudLayer(c.getCover(), c.getBase()))
                         .toList();
 
         List<String> phenomena = (noaa.getWxString() == null || noaa.getWxString().isBlank())
@@ -118,16 +125,16 @@ public class WeatherService {
                 // wxString contains space-separated codes, e.g. "-RA BR" -> ["-RA", "BR"]
                 : Arrays.asList(noaa.getWxString().split("\\s+"));
 
-        MetarDto.DecodedMetar decoded = new MetarDto.DecodedMetar(
-                new MetarDto.Wind(variable ? null : noaa.getWdir(), noaa.getWspd(), noaa.getWgst(), variable),
-                new MetarDto.Visibility(noaa.getVisib(), cavok),
-                new MetarDto.Temperature(noaa.getTemp(), noaa.getDewp()),
-                new MetarDto.Pressure(noaa.getAltim()),
+        MetarResponse.DecodedMetar decoded = new MetarResponse.DecodedMetar(
+                new MetarResponse.Wind(variable ? null : noaa.getWdir(), noaa.getWspd(), noaa.getWgst(), variable),
+                new MetarResponse.Visibility(noaa.getVisib(), cavok),
+                new MetarResponse.Temperature(noaa.getTemp(), noaa.getDewp()),
+                new MetarResponse.Pressure(noaa.getAltim()),
                 clouds,
                 phenomena,
                 noaa.getFltCat()
         );
 
-        return new MetarDto(noaa.getIcao(), observationTime, noaa.getRawOb(), decoded);
+        return new MetarResponse(noaa.getIcao(), observationTime, noaa.getRawOb(), decoded);
     }
 }
