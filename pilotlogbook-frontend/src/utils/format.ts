@@ -24,6 +24,5 @@ export function formatDuration(minutes: number): string {
 
 export function toLocalUtcString(local: string): string {
   const date = new Date(local)
-  date.setHours(date.getHours() - 2)
   return date.toISOString().slice(0, 19)
 }

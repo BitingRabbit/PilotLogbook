@@ -8,6 +8,7 @@ import { Field } from './ui/Field'
 import { Button } from './ui/Button'
 import { Alert } from './ui/Alert'
 import { cx } from './ui/cx'
+import { toLocalUtcString } from "../utils/format.ts"
 import MetarDecoded from './MetarDecoded'
 import RawMetar from './RawMetar'
 
@@ -27,11 +28,11 @@ export default function WeatherBlock() {
     setLoading(true)
     setError(null)
     try {
-      const result = await getMetar(icao.trim().toUpperCase(), time || undefined)
+      const result = await getMetar(icao.trim().toUpperCase(), (time) ? toLocalUtcString(time) : undefined)
       setMetar(result)
     } catch {
       setMetar(null)
-      setError('Failed to fetch METAR. Check the ICAO code and try again.')
+      setError('No METAR found for the ICAO Code or the timestamp. Please try again with a different ICAO or time.')
     } finally {
       setLoading(false)
     }

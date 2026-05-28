@@ -9,8 +9,8 @@ export default function FlightDetails({ flight }: { flight: FlightResponse }) {
     <Section title="Flight">
       <Card>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
-          <DataField label="Departure" mono>{formatDateTime(flight.departureTime)}</DataField>
-          <DataField label="Arrival" mono>{formatDateTime(flight.arrivalTime)}</DataField>
+          <DataField label="Departure" mono>{formatDateTime(flight.departureTime) + "Z"}</DataField>
+          <DataField label="Arrival" mono>{formatDateTime(flight.arrivalTime) + "Z"}</DataField>
           <DataField label="Duration" mono>{formatDuration(flight.durationInMinutes)}</DataField>
           <DataField label="Pilot function">{PILOT_FUNCTION_LABELS[flight.pilotFunction] ?? flight.pilotFunction}</DataField>
           <DataField label="Flight type" mono>{flight.flightType}</DataField>
