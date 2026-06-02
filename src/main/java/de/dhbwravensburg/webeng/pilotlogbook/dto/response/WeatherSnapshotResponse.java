@@ -3,10 +3,11 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarDto.DecodedMetar;
+import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarResponse.DecodedMetar;
 import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot;
 import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot.PhaseType;
 import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot.Status;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +21,20 @@ import org.slf4j.LoggerFactory;
  * @param icao   ICAO code of the observed airport (e.g. {@code EDDS}); always present
  * @param metar  full METAR data; {@code null} when status is PENDING or UNAVAILABLE
  */
+@Schema(description = "Weather snapshot captured for a flight phase (departure or arrival)")
 public record WeatherSnapshotResponse(
+
+        @Schema(description = "Flight phase this snapshot belongs to")
         PhaseType phase,
+
+        @Schema(description = "Current processing status of the snapshot")
         Status status,
+
+        @Schema(description = "ICAO code of the observed airport", example = "EDDS")
         String icao,
-        MetarDto metar
+
+        @Schema(description = "Full METAR data. Null when status is PENDING or UNAVAILABLE.")
+        MetarResponse metar
 ) {
 
     private static final Logger log = LoggerFactory.getLogger(WeatherSnapshotResponse.class);
@@ -49,7 +59,7 @@ public record WeatherSnapshotResponse(
         try {
             DecodedMetar decoded = MAPPER.readValue(
                     snapshot.getDecodedMetarJson(), DecodedMetar.class);
-            MetarDto metar = new MetarDto(snapshot.getIcao(), null, snapshot.getRawMetar(), decoded);
+            MetarResponse metar = new MetarResponse(snapshot.getIcao(), null, snapshot.getRawMetar(), decoded);
             return new WeatherSnapshotResponse(snapshot.getPhaseType(), snapshot.getStatus(),
                     snapshot.getIcao(), metar);
         } catch (JsonProcessingException e) {

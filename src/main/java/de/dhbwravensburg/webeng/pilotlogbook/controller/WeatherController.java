@@ -1,9 +1,16 @@
 package de.dhbwravensburg.webeng.pilotlogbook.controller;
 
-import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarDto;
+import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.response.WeatherSnapshotResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.service.WeatherService;
 import de.dhbwravensburg.webeng.pilotlogbook.service.WeatherSnapshotService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,6 +33,7 @@ import java.util.List;
 @RequestMapping("/api/v1/metars")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Weather", description = "METAR observations and per-flight weather snapshots")
 public class WeatherController {
 
     private final WeatherService weatherService;
@@ -39,14 +47,26 @@ public class WeatherController {
      * @param time optional ISO-8601 date-time, interpreted as UTC
      * @return live or historical METAR
      */
+    @Operation(
+            summary = "Get a METAR observation",
+            description = "Returns the most recent METAR for the given ICAO when no time is passed, "
+                    + "otherwise the observation closest to the given UTC time. Public endpoint."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "METAR returned"),
+            @ApiResponse(responseCode = "400", description = "ICAO must be exactly 4 letters", content = @Content),
+            @ApiResponse(responseCode = "503", description = "Upstream weather provider unavailable", content = @Content)
+    })
     @GetMapping
-    public ResponseEntity<MetarDto> getMetar(
+    public ResponseEntity<MetarResponse> getMetar(
+            @Parameter(description = "4-letter ICAO code", example = "EDDS")
             @RequestParam @Pattern(regexp = "^[A-Z]{4}$",
                     message = "ICAO must be exactly 4 letters") String icao,
+            @Parameter(description = "Optional ISO-8601 UTC time of the observation", example = "2026-05-27T14:00:00")
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime time) {
         String normalized = icao.toUpperCase();
-        MetarDto result = (time == null)
+        MetarResponse result = (time == null)
                 ? weatherService.getLiveMetar(normalized)
                 : weatherService.getHistoricalMetar(normalized, time);
         return ResponseEntity.ok(result);
@@ -59,8 +79,19 @@ public class WeatherController {
      * @param flightId id of the flight whose snapshots should be refreshed
      * @return updated departure and arrival snapshot responses
      */
+    @Operation(
+            summary = "Refresh weather snapshots for a flight",
+            description = "Re-fetches snapshots in PENDING or UNAVAILABLE state. AVAILABLE snapshots stay untouched. Idempotent."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Departure and arrival snapshots returned"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Flight does not exist or is not owned by the pilot", content = @Content)
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/snapshots/refresh/{flightId}")
     public ResponseEntity<List<WeatherSnapshotResponse>> refreshSnapshots(
+            @Parameter(description = "ID of the flight whose snapshots should be refreshed", example = "42")
             @PathVariable Long flightId) {
         return ResponseEntity.ok(weatherSnapshotService.refreshSnapshots(flightId));
     }

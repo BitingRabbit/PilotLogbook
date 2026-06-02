@@ -11,12 +11,8 @@ import java.util.List;
 /**
  * 1:1 mapping of a single entry in the response array of api-ninjas
  * {@code /v1/airports}. Snake-case fields are mapped with {@link JsonProperty};
- * unknown fields are ignored so future additions on the upstream side do not
+ * unknown fields are ignored so future additions on the upstream side dont
  * break deserialisation.
- * <p>
- * This DTO is internal — never serialise it back through the REST API. Map to
- * {@link de.dhbwravensburg.webeng.pilotlogbook.model.Airport} and return
- * {@link de.dhbwravensburg.webeng.pilotlogbook.dto.response.AirportResponse}.
  */
 @Getter
 @Setter

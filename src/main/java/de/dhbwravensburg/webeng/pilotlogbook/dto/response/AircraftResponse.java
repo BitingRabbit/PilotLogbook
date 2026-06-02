@@ -2,6 +2,7 @@ package de.dhbwravensburg.webeng.pilotlogbook.dto.response;
 
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft.EngineType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Response payload returned when reading aircraft data.
@@ -15,11 +16,22 @@ import de.dhbwravensburg.webeng.pilotlogbook.model.Aircraft.EngineType;
  * @param model         optional free-text model/variant name
  * @param engineType    the engine/propulsion type of the aircraft
  */
+@Schema(description = "Aircraft as exposed by the API")
 public record AircraftResponse(
+
+        @Schema(description = "Database identifier", example = "1")
         Long id,
+
+        @Schema(description = "Registration mark", example = "D-ABCD")
         String registration,
+
+        @Schema(description = "ICAO type designator", example = "C172")
         String type,
+
+        @Schema(description = "Model / variant name", example = "Skyhawk")
         String model,
+
+        @Schema(description = "Engine / propulsion type")
         EngineType engineType
 ) {
 
