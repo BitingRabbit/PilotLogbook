@@ -1,0 +1,249 @@
+"ISO-8601 local date-time, e.g. 2026-05-25T14:30:00"
+scalar DateTime
+
+"High-precision decimal number"
+scalar BigDecimal
+
+# ==================== Enums ====================
+
+enum EngineType {
+    SINGLE_PISTON
+    MULTI_PISTON
+    TURBOPROP
+    JET
+}
+
+enum PilotFunction {
+    PIC
+    SIC
+    DUAL
+    INSTRUCTOR
+}
+
+enum FlightType {
+    VFR
+    IFR
+}
+
+enum AirportSize {
+    SMALL
+    MEDIUM
+    LARGE
+}
+
+enum PhaseType {
+    DEPARTURE
+    ARRIVAL
+}
+
+enum WeatherStatus {
+    PENDING
+    AVAILABLE
+    UNAVAILABLE
+}
+
+# ==================== Object Types ====================
+
+type AuthPayload {
+    tokenType: String!
+    token: String!
+}
+
+type Aircraft {
+    id: ID!
+    registration: String!
+    type: String!
+    model: String
+    engineType: EngineType!
+}
+
+type Runway {
+    lengthInFt: Int
+    widthInFt: Int
+    hasLights: Boolean
+}
+
+type Airport {
+    icao: String!
+    iata: String
+    name: String!
+    city: String
+    country: String
+    elevationInFt: Int
+    latitude: Float!
+    longitude: Float!
+    timezone: String
+    size: AirportSize
+    runways: [Runway!]!
+}
+
+type Wind {
+    directionDeg: Int
+    speedKt: Int
+    gustKt: Int
+    variable: Boolean!
+}
+
+type Visibility {
+    value: String
+    cavok: Boolean!
+}
+
+type Temperature {
+    tempC: Float
+    dewpointC: Float
+}
+
+type Pressure {
+    qnhHpa: Float
+}
+
+type CloudLayer {
+    cover: String!
+    baseFt: Int
+}
+
+type DecodedMetar {
+    wind: Wind
+    visibility: Visibility
+    temperature: Temperature
+    pressure: Pressure
+    clouds: [CloudLayer!]!
+    phenomena: [String!]!
+    flightCategory: String
+}
+
+type MetarDto {
+    icao: String!
+    observationTime: DateTime
+    rawMetar: String!
+    decodedMetar: DecodedMetar!
+}
+
+type WeatherSnapshot {
+    phase: PhaseType!
+    status: WeatherStatus!
+    icao: String!
+    metar: MetarDto
+}
+
+type Flight {
+    id: ID!
+    departureTime: DateTime!
+    arrivalTime: DateTime!
+    durationInMinutes: Int!
+    aircraftId: ID!
+    aircraftRegistration: String!
+    aircraftType: String!
+    aircraftModel: String
+    passengers: Int
+    landings: Int!
+    pilotFunction: PilotFunction!
+    flightType: FlightType!
+    cost: BigDecimal
+    remarks: String
+    createdAt: DateTime!
+    weatherSnapshots: [WeatherSnapshot!]!
+    originAirport: Airport!
+    destinationAirport: Airport!
+}
+
+# ==================== Input Types ====================
+
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+input RegisterInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    password: String!
+}
+
+input CreateAircraftInput {
+    registration: String!
+    type: String!
+    model: String
+    engineType: EngineType!
+}
+
+input UpdateAircraftInput {
+    registration: String
+    type: String
+    model: String
+    engineType: EngineType
+}
+
+input CreateFlightInput {
+    originIcao: String!
+    destinationIcao: String!
+    departureTime: DateTime!
+    arrivalTime: DateTime!
+    aircraftId: ID!
+    passengers: Int
+    landings: Int!
+    pilotFunction: PilotFunction!
+    flightType: FlightType!
+    cost: BigDecimal
+    remarks: String
+}
+
+input UpdateFlightInput {
+    originIcao: String
+    destinationIcao: String
+    departureTime: DateTime
+    arrivalTime: DateTime
+    aircraftId: ID
+    passengers: Int
+    landings: Int
+    pilotFunction: PilotFunction
+    flightType: FlightType
+    cost: BigDecimal
+    remarks: String
+}
+
+# ==================== Root Types ====================
+
+type Query {
+    "Lookup an airport by 4-letter ICAO code (cached, fetched on miss)."
+    airport(icao: String!): Airport
+
+    "Live or historical METAR. Omit time for the most recent observation."
+    metar(icao: String!, time: DateTime): MetarDto
+
+    "All aircraft owned by the authenticated pilot"
+    aircraft: [Aircraft!]!
+
+    "Single aircraft by ID, scoped to the authenticated pilot."
+    aircraftById(id: ID!): Aircraft
+
+    "All flights of the authenticated pilot, sorted by departure desc."
+    flights: [Flight!]!
+
+    "Single flight by ID, scoped to the authenticated pilot."
+    flight(id: ID!): Flight
+
+    "Dashboard list filtered by optional criteria (limited to 10)."
+    flightsDashboard(dep: String, dest: String, duration: Int, month: Int): [Flight!]!
+}
+
+type Mutation {
+    "Register a new pilot and return a JWT."
+    register(input: RegisterInput!): AuthPayload!
+
+    "Authenticate and return a JWT."
+    login(input: LoginInput!): AuthPayload!
+
+    createAircraft(input: CreateAircraftInput!): Aircraft!
+    updateAircraft(id: ID!, input: UpdateAircraftInput!): Aircraft!
+    deleteAircraft(id: ID!): Boolean!
+
+    createFlight(input: CreateFlightInput!): Flight!
+    updateFlight(id: ID!, input: UpdateFlightInput!): Flight!
+    deleteFlight(id: ID!): Boolean!
+
+    "Re-fetch weather snapshots for a flight where initial async capture failed."
+    refreshWeatherSnapshots(flightId: ID!): [WeatherSnapshot!]!
+}
