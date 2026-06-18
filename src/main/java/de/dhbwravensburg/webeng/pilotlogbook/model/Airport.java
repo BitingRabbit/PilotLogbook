@@ -64,7 +64,7 @@ public class Airport {
     private Size size;
 
     @Setter
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "airport_runways", joinColumns = @JoinColumn(name = "airport_id"))
     private Set<Runway> runways = new HashSet<>();
 
