@@ -48,6 +48,7 @@ export default function DetailedPage() {
     }
   }, [preselectedFlightId])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchFlights() }, [fetchFlights])
 
   const refreshSelected = useCallback(async () => {
@@ -57,7 +58,9 @@ export default function DetailedPage() {
       setFlights(data)
       const updated = data.find(f => f.id === selected.id)
       if (updated) setSelected(updated)
-    } catch {}
+    } catch (err) {
+      console.warn('refresh failed', err)
+    }
   }, [selected])
 
   const handleDelete = useCallback(async () => {
