@@ -1,18 +1,22 @@
 package de.dhbwravensburg.webeng.pilotlogbook.service;
 
+import de.dhbwravensburg.webeng.pilotlogbook.config.CacheConfig;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.external.NinjaAirportDto;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.response.AirportResponse;
+import de.dhbwravensburg.webeng.pilotlogbook.exception.AirportTimeoutException;
 import de.dhbwravensburg.webeng.pilotlogbook.exception.AirportUnavailableException;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Airport;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Runway;
 import de.dhbwravensburg.webeng.pilotlogbook.repository.AirportRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,12 @@ public class AirportService {
      * @throws IllegalArgumentException    if the ICAO format is invalid or unknown
      * @throws AirportUnavailableException if the external API is unreachable
      */
+    @Cacheable(value = CacheConfig.AIRPORTS, key = "#icao.toUpperCase()")
+    @Retryable(
+            retryFor = { AirportTimeoutException.class, AirportUnavailableException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, multiplier = 2.0, maxDelay = 5000)
+    )
     public Airport validateIcaoAndGetOrFetch(String icao) {
         String icaoUpperCase = icao.toUpperCase();
 
@@ -49,7 +59,7 @@ public class AirportService {
 
     /**
      * Returns the {@link AirportResponse} DTO for the given ICAO code.
-     * Delegates to {@link #validateIcaoAndGetOrFetch(String)} — use this in the controller.
+     * Delegates to {@link #validateIcaoAndGetOrFetch(String)}
      *
      * @param icao 4-letter uppercase ICAO code
      * @return airport response DTO
@@ -66,7 +76,8 @@ public class AirportService {
      * @param icao validated, uppercase ICAO code
      * @return unmapped entity ready for persistence
      * @throws IllegalArgumentException    if the API returns no result for this ICAO
-     * @throws AirportUnavailableException if the API returns an HTTP error or is unreachable
+     *                                     or rejects the request with a 4xx status
+     * @throws AirportUnavailableException if the API returns a 5xx status
      */
     private Airport fetchFromNinja(String icao) {
         NinjaAirportDto[] result;
@@ -74,13 +85,17 @@ public class AirportService {
             result = ninjaAirportRestClient.get()
                     .uri(uri -> uri.queryParam("icao", icao).build())
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                    .onStatus(HttpStatusCode::is5xxServerError, (req, resp) -> {
                         throw new AirportUnavailableException(
-                                "Airport API error for " + icao + ": " + resp.getStatusCode());
+                                "Airport API server error for " + icao + ": " + resp.getStatusCode());
+                    })
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, resp) -> {
+                        throw new IllegalArgumentException(
+                                "Airport API rejected request for " + icao + ": " + resp.getStatusCode());
                     })
                     .body(NinjaAirportDto[].class);
         } catch (RestClientException ex) {
-            throw new AirportUnavailableException("Airport API unreachable for " + icao);
+            throw new AirportTimeoutException("Airport API unreachable for " + icao);
         }
 
         if (result == null || result.length == 0) {
@@ -91,8 +106,7 @@ public class AirportService {
     }
 
     /**
-     * Maps a raw api-ninjas DTO to the {@link Airport} entity.
-     * Ninja delivers latitude/longitude as {@code Double}, size as a lowercase string.
+     * Maps a raw api-ninjas DTO to the {@link Airport} entity
      */
     private Airport mapToEntity(NinjaAirportDto dto) {
         Set<Runway> runways = dto.getRunways() == null ? Set.of() :

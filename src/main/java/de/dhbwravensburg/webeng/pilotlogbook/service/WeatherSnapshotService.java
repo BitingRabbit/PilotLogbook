@@ -2,9 +2,10 @@ package de.dhbwravensburg.webeng.pilotlogbook.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarDto;
+import de.dhbwravensburg.webeng.pilotlogbook.dto.response.MetarResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.dto.response.WeatherSnapshotResponse;
 import de.dhbwravensburg.webeng.pilotlogbook.exception.ResourceNotFoundException;
+import de.dhbwravensburg.webeng.pilotlogbook.exception.WeatherTimeoutException;
 import de.dhbwravensburg.webeng.pilotlogbook.exception.WeatherUnavailableException;
 import de.dhbwravensburg.webeng.pilotlogbook.model.Flight;
 import de.dhbwravensburg.webeng.pilotlogbook.model.WeatherSnapshot;
@@ -36,7 +37,7 @@ public class WeatherSnapshotService {
     /**
      * Asynchronously captures departure and arrival weather snapshots for the given flight.
      * Each snapshot is saved as PENDING first, then updated to AVAILABLE or UNAVAILABLE
-     * depending on whether the noaaWeatherApi returns data. One snapshot failing does not affect the other. Idempotent
+     * depending on whether the noaaWeatherApi returns data. One snapshot failing doesn't affect the other. Idempotent
      *
      * @param flightId id of the flight to capture snapshots for
      */
@@ -47,8 +48,6 @@ public class WeatherSnapshotService {
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flight not found: " + flightId));
 
-        // Look up existing records so we never create duplicate (flight_id, phase_type) rows,
-        // even if this method is accidentally invoked more than once for the same flight.
         WeatherSnapshot existingDep = weatherSnapshotRepository
                 .findByFlightIdAndPhaseType(flightId, PhaseType.DEPARTURE).orElse(null);
         WeatherSnapshot existingArr = weatherSnapshotRepository
@@ -61,8 +60,8 @@ public class WeatherSnapshotService {
     }
 
     /**
-     * Synchronously re-fetches snapshots for a flight whose initial async capture failed.
-     * Snapshots already in {@link Status#AVAILABLE} are left untouched. Idempotent
+     * Synchronously re-fetches snapshots for a flight where initial async capture failed.
+     * Snapshots already in {@link Status#AVAILABLE} are ignored. Idempotent
      *
      * @param flightId id of the flight to refresh
      * @return updated snapshot responses (departure + arrival)
@@ -93,7 +92,7 @@ public class WeatherSnapshotService {
 
     /**
      * Creates a new snapshot or updates an existing one with fresh METAR data.
-     * If the existing snapshot is already AVAILABLE, it is left untouched. Idempotent
+     * If the existing snapshot is already AVAILABLE, it is ignored. Idempotent
      */
     private void captureOrUpdate(Flight flight, PhaseType phase, String icao,
                                   LocalDateTime time, WeatherSnapshot existing) {
@@ -109,10 +108,11 @@ public class WeatherSnapshotService {
         }
 
         try {
-            MetarDto metar = weatherService.getHistoricalMetar(icao, time);
+            MetarResponse metar = weatherService.getHistoricalMetar(icao, time);
             String decodedMetarJson = objectMapper.writeValueAsString(metar.decodedMetar());
             snapshot.markAvailable(metar.rawMetar(), decodedMetarJson);
-        } catch (WeatherUnavailableException | JsonProcessingException e) {
+        } catch (WeatherUnavailableException | WeatherTimeoutException
+                 | ResourceNotFoundException | JsonProcessingException e) {
             log.warn("Failed to capture {} snapshot for flight {} ({}): {}",
                     phase, flight.getId(), icao, e.getMessage());
             snapshot.markUnavailable();
