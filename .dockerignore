@@ -1,15 +1,17 @@
+# Secrets
 .env
 .env.*
-!.env.example
 
-# Build artifacts and IDE files
+# Build/IDE
 target/
 .idea/
-*.iml
 .vscode/
+*.iml
 .git/
-.gitignore
+.DS_Store
+
+# Docs
+*.md
 
 # Frontend (separate image)
-pilotlogbook-frontend/node_modules/
-pilotlogbook-frontend/dist/
+frontend/
