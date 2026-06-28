@@ -44,7 +44,7 @@ public class WeatherSnapshotService {
     @Async
     @Transactional
     public void captureSnapshotsForFlight(Long flightId) {
-        // Load directly by ID — security context is not available in async threads
+        // Load directly by ID
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flight not found: " + flightId));
 
@@ -75,7 +75,7 @@ public class WeatherSnapshotService {
                 .collect(Collectors.toMap(
                         WeatherSnapshot::getPhaseType,
                         s -> s,
-                        // Keep the most recently created entry if somehow duplicates exist in DB
+                        // Keeps the most recently created entry if somehow duplicates exist in DB
                         (a, b) -> a.getId() > b.getId() ? a : b));
 
         captureOrUpdate(flight, PhaseType.DEPARTURE, flight.getOriginAirport().getIcao(),

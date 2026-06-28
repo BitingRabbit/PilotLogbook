@@ -11,9 +11,8 @@ import lombok.Getter;
 import java.util.List;
 
 /**
- * Public API response for airport master data, mapped from the cached
- * {@link Airport} entity. Internal fields like {@code fetchedAt} are
- * deliberately not exposed — they are an implementation detail of the cache.
+ * Public API response for airport data, mapped from the cached
+ * {@link Airport} entity.
  *
  * <p>Use {@link #from(Airport)} to map.
  */
@@ -39,7 +38,7 @@ public class AirportResponse {
     @Schema(description = "Associated city", example = "Stuttgart")
     private String city;
 
-    /** ISO 3166-1 alpha-2 country code, e.g. {@code "DE"}. */
+    /** 2 letter country code, e.g. {@code "DE"}. */
     @Schema(description = "2 letter country code", example = "DE")
     private String country;
 
@@ -47,19 +46,19 @@ public class AirportResponse {
     @Schema(description = "Field elevation in feet AMSL", example = "1276")
     private Integer elevationInFt;
 
-    /** Latitude in decimal degrees (WGS-84). */
+    /** Latitude in decimal degrees. */
     @Schema(description = "Latitude in decimal degrees", example = "48.6899")
     private Double latitude;
 
-    /** Longitude in decimal degrees (WGS-84). */
+    /** Longitude in decimal degrees. */
     @Schema(description = "Longitude in decimal degrees", example = "9.2220")
     private Double longitude;
 
-    /** IANA timezone identifier, e.g. {@code "Europe/Berlin"}. */
+    /** timezone identifier, e.g. {@code "Europe/Berlin"}. */
     @Schema(description = "timezone identifier", example = "Europe/Berlin")
     private String timezone;
 
-    /** Coarse size classification. */
+    /** Airport size classification. */
     @Schema(description = "Airport size classification")
     private Airport.Size size;
 
@@ -88,8 +87,7 @@ public class AirportResponse {
     }
 
     /**
-     * Public API representation of a single runway. Nested because runways are
-     * only ever exposed as part of an airport.
+     * Public API representation of a single runway. Nested.
      *
      * @param lengthInFt runway length in feet
      * @param widthInFt  runway width in feet

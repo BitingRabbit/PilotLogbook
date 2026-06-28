@@ -8,6 +8,7 @@ interface WeatherSectionProps {
   onRefresh: () => void
 }
 
+// fill in missing phases so both cards always render
 function resolveSnapshots(flight: FlightResponse): WeatherSnapshotResponse[] {
   const byPhase = new Map(flight.weatherSnapshots.map(s => [s.phase, s]))
   return [

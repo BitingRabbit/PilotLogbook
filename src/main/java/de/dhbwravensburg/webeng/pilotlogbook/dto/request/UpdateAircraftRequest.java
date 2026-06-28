@@ -11,9 +11,9 @@ import jakarta.validation.constraints.Size;
  * <p>All fields are optional. Only non-{@code null} fields are updated
  * so a single field can be changed without sending the full object.
  *
- * @param registration new registration mark — 4–6 uppercase alphanumeric characters or hyphens
- * @param type         new ICAO type designator — 2–4 characters when provided
- * @param model        new model/variant name — at most 50 characters when provided
+ * @param registration new registration mark, 4–6 uppercase alphanumeric characters or hyphens
+ * @param type         new ICAO type designator, 2–4 characters when provided
+ * @param model        new model/variant name, at most 50 characters when provided
  * @param engineType   new engine/propulsion type
  */
 @Schema(description = "Partial update for an aircraft, only non-null fields are applied")

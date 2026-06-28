@@ -13,9 +13,9 @@ import org.springframework.web.client.RestClient;
 /**
  * Spring configuration providing a {@link RestClient} and {@link ObjectMapper} for the NOAA weather API.
  *
- * <p>Required application properties:
+ * <p> Config properties:
  * <ul>
- *   <li>{@code weather.api.base-url} - base URL of the NOAA API (e.g. {@code https://aviationweather.gov/api/data})</li>
+ *   <li>{@code weather.api.base-url} base URL of the NOAA API (e.g. {@code https://aviationweather.gov/api/data})</li>
  *   <li>{@code weather.api.timeout-ms}  connect and read timeout in milliseconds</li>
  * </ul>
  */
@@ -47,7 +47,6 @@ public class WeatherConfig {
 
     /**
      * ObjectMapper bean for JSON serialization/deserialization of decoded METAR data.
-     * JavaTimeModule is required for {@link java.time.LocalDateTime} support.
      */
     @Bean
     public ObjectMapper objectMapper() {

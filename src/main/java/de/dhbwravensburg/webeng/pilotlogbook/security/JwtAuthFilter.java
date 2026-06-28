@@ -63,6 +63,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String username = jwtService.extractUsername(jwt);
 
+            // Skip if an earlier filter already authenticated this request => never overwrite an existing Authentication
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 

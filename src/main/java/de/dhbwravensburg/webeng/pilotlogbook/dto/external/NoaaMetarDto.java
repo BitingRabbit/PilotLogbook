@@ -41,32 +41,31 @@ public class NoaaMetarDto {
 
     /**
      * Prevailing visibility as a string (e.g. {@code "6+"}, {@code "10"}).
-     * Unit is statute miles for US stations, metres for ICAO-format stations.
      */
     private String visib;
 
-    /** Altimeter setting in inches of mercury (inHg). Convert to hPa by multiplying by 33.8639. */
+    /** Altimeter setting. */
     private Double altim;
 
     /**
-     * Space-separated present-weather phenomenon codes as defined in METAR syntax
+     * weather phenomenon codes
      * (e.g. {@code "-RA BR"} for light rain and mist). {@code null} or blank when none reported.
      */
     private String wxString;
 
-    /** Unmodified raw METAR string as issued by the station (e.g. {@code EDDS 121220Z 27008KT ...}). */
+    /** raw METAR string as issued by the station (e.g. {@code EDDS 121220Z 27008KT ...}). */
     private String rawOb;
 
     /**
-     * FAA flight category derived from visibility and ceiling:
+     * flight category
      * {@code VFR}, {@code MVFR}, {@code IFR}, or {@code LIFR}.
      */
     private String fltCat;
 
-    /** Sky cover code for the lowest layer (legacy field — prefer {@link #clouds} for full detail). */
+    /** Sky cover code for the lowest layer. */
     private String cover;
 
-    /** All reported cloud layers, ordered from lowest to highest base altitude. */
+    /** All reported cloud layers. */
     private List<CloudLayer> clouds;
 
     /**
@@ -78,11 +77,11 @@ public class NoaaMetarDto {
 
         /**
          * Sky coverage abbreviation: {@code FEW} (1–2 oktas), {@code SCT} (3–4),
-         * {@code BKN} (5–7), {@code OVC} (8 / overcast).
+         * {@code BKN} (5-7), {@code OVC} (8 / overcast).
          */
         private String cover;
 
-        /** Cloud base height in hundreds of feet above aerodrome elevation. */
+        /** Cloud base height */
         private Integer base;
     }
 }

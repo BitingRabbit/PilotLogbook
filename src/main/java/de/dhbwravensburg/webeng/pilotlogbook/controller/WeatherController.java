@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * REST endpoints for METAR weather data and per-flight weather snapshots.
+ * REST endpoints for METAR weather data and flight weather snapshots.
  */
 @RestController
 @RequestMapping("/api/v1/metars")
@@ -44,7 +44,7 @@ public class WeatherController {
      * METAR is returned, otherwise the observation closest to the given UTC time
      *
      * @param icao 4-letter airport code (case-insensitive, normalised to uppercase)
-     * @param time optional ISO-8601 date-time, interpreted as UTC
+     * @param time date-time, interpreted as UTC
      * @return live or historical METAR
      */
     @Operation(

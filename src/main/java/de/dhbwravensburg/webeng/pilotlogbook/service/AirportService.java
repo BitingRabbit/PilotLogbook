@@ -74,7 +74,7 @@ public class AirportService {
      * Calls api-ninjas to retrieve airport data.
      *
      * @param icao validated, uppercase ICAO code
-     * @return unmapped entity ready for persistence
+     * @return new snapshot, not yet saved
      * @throws IllegalArgumentException    if the API returns no result for this ICAO
      *                                     or rejects the request with a 4xx status
      * @throws AirportUnavailableException if the API returns a 5xx status

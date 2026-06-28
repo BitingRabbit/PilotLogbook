@@ -31,6 +31,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
      * @param pilotId the pilots id
      * @return list of flights flown by the pilot
      */
+    // Avoids N+1 queries on the detail page
     @EntityGraph(attributePaths = { "originAirport", "originAirport.runways", "destinationAirport",
             "destinationAirport.runways", "aircraft", "weatherSnapshots" }
     )
@@ -46,6 +47,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
      * @param month month of the flight (dep)
      * @return list of flights matching the criteria
      */
+    // avoids N+1 Queries on dashboard
     @EntityGraph(attributePaths = { "originAirport", "originAirport.runways", "destinationAirport",
             "destinationAirport.runways", "aircraft", "weatherSnapshots" }
     )
@@ -68,7 +70,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     );
 
     /**
-     * Checks whether at least one flight references the given aircraft.
+     * Checks whether a flight references the given aircraft.
      * Used to prevent deletion of an aircraft that is still in use.
      *
      * @param aircraftId ID of the aircraft to check

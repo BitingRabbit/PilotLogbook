@@ -35,6 +35,7 @@ export default function DetailedPage() {
       const data = await getFlights()
       setFlights(data)
       if (data.length > 0) {
+        // keep current selection on refetch; only pick a default the first time
         setSelected(prev => {
           if (prev) return prev
           const target = preselectedFlightId ? data.find(f => f.id === preselectedFlightId) : undefined

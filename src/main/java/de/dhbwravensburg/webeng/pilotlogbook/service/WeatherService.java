@@ -74,7 +74,7 @@ public class WeatherService {
                         })
                         .body(NoaaMetarDto[].class);
             } else {
-                // NOAA expects UTC — aviation times are always UTC by convention
+                // NOAA expects UTC
                 String dateParam = time.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
                 response = noaaWeatherRestClient.get()
                         .uri("/metar?ids={icao}&format=json&date={date}", icao, dateParam)
@@ -85,8 +85,6 @@ public class WeatherService {
                         .body(NoaaMetarDto[].class);
             }
         } catch (RestClientException ex) {
-            // Transport-level failures (read timeout, connection refused, …) surface as
-            // ResourceAccessException before any status is read — map them to a clean 503.
             throw new WeatherUnavailableException("NOAA API unreachable for " + icao);
         }
 
@@ -104,13 +102,13 @@ public class WeatherService {
      * @return structured MetarResponse with raw string and decoded fields
      */
     private MetarResponse mapToMetarDto(NoaaMetarDto noaa) {
-        // CAVOK (Clouds and Visibility OK) means no significant weather — skip cloud/visibility details
+        // CAVOK (Clouds and Visibility OK) means no significant weather, skip cloud/visibility details
         boolean cavok = noaa.getRawOb() != null && noaa.getRawOb().contains("CAVOK");
         // wdir is null when wind is variable (VRB), also check raw string as fallback
         boolean variable = noaa.getWdir() == null
                 || (noaa.getRawOb() != null && noaa.getRawOb().contains("VRB"));
 
-        // NOAA returns obsTime as Unix epoch seconds — convert to UTC LocalDateTime
+        // NOAA returns obsTime as Unix epoch seconds, convert to UTC LocalDateTime
         LocalDateTime observationTime = noaa.getObsTime() != null
                 ? Instant.ofEpochSecond(noaa.getObsTime()).atZone(ZoneOffset.UTC).toLocalDateTime()
                 : null;

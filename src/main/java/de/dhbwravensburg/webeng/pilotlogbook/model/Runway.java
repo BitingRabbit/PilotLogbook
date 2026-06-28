@@ -9,9 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Embeddable value object describing a single runway of an {@link Airport}.
- * Immutable by design — runway properties are populated once when the parent
- * airport is fetched from the external data source.
+ * Describes a single runway of an {@link Airport}.
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

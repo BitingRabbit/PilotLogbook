@@ -41,8 +41,6 @@ public class Pilot implements UserDetails {
 
     /**
      * Email used as login identifier. Unique across the system.
-     * Immutable through the generic setter — re-assigning the email of an
-     * existing account requires a dedicated service-level flow.
      */
     @Setter(AccessLevel.NONE)
     @Column(nullable = false, unique = true, length = 100)
@@ -61,8 +59,7 @@ public class Pilot implements UserDetails {
     private LocalDateTime createdAt;
 
     /**
-     * Creates a new pilot. Caller is responsible for ensuring {@code password}
-     * is already hashed by the configured {@code PasswordEncoder}.
+     * Creates a new pilot.
      *
      * @param firstName first name
      * @param lastName  last name

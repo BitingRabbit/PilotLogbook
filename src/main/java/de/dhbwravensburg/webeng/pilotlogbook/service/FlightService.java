@@ -75,8 +75,7 @@ public class FlightService {
 
         Flight saved = flightRepository.save(flight);
 
-        // Trigger the async worker only after the transaction commits — otherwise
-        // the worker thread might query the flight before it is visible in the DB.
+        // Schedule after commit to prevent race conditions with the async worker
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {

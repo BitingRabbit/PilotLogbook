@@ -36,6 +36,7 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
+      // Debounce API calls while the user is adjusting filters
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => fetchFlights(filterDep, filterDest, filterMonth), 400)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }

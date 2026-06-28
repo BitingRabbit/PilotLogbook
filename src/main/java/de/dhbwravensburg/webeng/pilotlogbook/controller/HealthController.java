@@ -22,7 +22,7 @@ public class HealthController {
         return new HealthStatus(
                 "UP",
                 "Pilot Logbook",
-                "0.1.0"
+                "1.0.0"
         );
     }
 }

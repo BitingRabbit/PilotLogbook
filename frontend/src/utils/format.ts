@@ -24,5 +24,6 @@ export function formatDuration(minutes: number): string {
 
 export function toLocalUtcString(local: string): string {
   const date = new Date(local)
+  // Drop the milliseconds and trailing "Z"
   return date.toISOString().slice(0, 19)
 }

@@ -16,13 +16,4 @@ public interface AirportRepository extends JpaRepository<Airport, Long> {
      * @return matching airport, if cached
      */
     Optional<Airport> findByIcao(String icao);
-
-    /**
-     * Bulk lookup for the dashboard map. Callers are expected to pass already
-     * uppercase, pilot-scoped ICAOs collected from filtered flights.
-     *
-     * @param icaos uppercase ICAO codes
-     * @return matching cached airports
-     */
-    List<Airport> findByIcaoIn(Collection<String> icaos);
 }

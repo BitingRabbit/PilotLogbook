@@ -259,6 +259,7 @@ export default function FlightFormModal({ flight, onClose, onSuccess }: FlightFo
   )
 }
 
+// Builds PATCH body containing only fields the user actually changed
 function buildPatchPayload(data: EditFlightFormData, original: FlightResponse): UpdateFlightRequest {
   const payload: UpdateFlightRequest = {}
 

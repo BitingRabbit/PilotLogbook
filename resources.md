@@ -14,6 +14,7 @@ mentioned here, has been own knowledge from prior projects.
 - GraphQL
 - OpenAPI/Swagger
 - RestClient / API Config
+- many other small things
 
 ### CI/CD-Pipeline mit Github Actions
 - https://medium.com/@helen_18602/ci-cd-pipeline-mit-github-actions-5e27cc65b378
@@ -31,7 +32,7 @@ While the resources above have been useful, some questions and issues got resolv
 AI-Model: Claude Opus 4.7
 Used:
 - Some doc-strings and comments
-- Some frontend parts (espacially partially css)
+- Some frontend parts (especially partially css)
 - Mermaid diagrams
 - Bugfixing, mainly in spring security topics
 - Some commit messages for proper phrasing (professionality)

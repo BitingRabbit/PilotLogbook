@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * REST controller for managing flight log entries of the authenticated pilot.
- * All endpoints are scoped to the current user — pilots can only access their own flights.
+ * All endpoints are scoped to the current user, pilots can only access their own flights.
  */
 @RestController
 @RequestMapping("/api/v1/flights")
@@ -150,7 +150,7 @@ public class FlightController {
      * @param dep      departure ICAO filter (optional)
      * @param dest     destination ICAO filter (optional)
      * @param duration minimum flight duration filter in minutes (optional)
-     * @param month    month number 1–12 filter (optional)
+     * @param month    month number 1-12 filter (optional)
      * @return filtered list of flights
      */
     @Operation(

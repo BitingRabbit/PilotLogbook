@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
  * match the pattern {@code ^[A-Z0-9-]+$} (uppercase ICAO style).
  *
  * @param registration ICAO/national registration mark (e.g. {@code D-ABCD}),
- *                     4–6 uppercase alphanumeric characters or hyphens
+ *                     4-6 uppercase alphanumeric characters or hyphens
  * @param type         ICAO type designator (e.g. {@code C172}), 2–4 characters
  * @param model        optional free-text model/variant name, at most 50 characters
  * @param engineType   the engine/propulsion type

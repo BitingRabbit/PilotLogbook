@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 /**
- * Persistence access for {@link WeatherSnapshot} entities.
+ * Repository for saving and querying flight weather observations.
  */
 public interface WeatherSnapshotRepository extends JpaRepository<WeatherSnapshot, Long> {
 
@@ -21,7 +21,6 @@ public interface WeatherSnapshotRepository extends JpaRepository<WeatherSnapshot
 
     /**
      * Returns the snapshot for a specific flight and phase, if it exists.
-     * Used to avoid duplicate creation in the async capture flow.
      */
     java.util.Optional<WeatherSnapshot> findByFlightIdAndPhaseType(
             Long flightId, WeatherSnapshot.PhaseType phaseType);

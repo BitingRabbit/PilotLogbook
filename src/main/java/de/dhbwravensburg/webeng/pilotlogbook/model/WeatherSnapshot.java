@@ -7,13 +7,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * JPA entity representing a single METAR weather observation captured for a
- * {@link Flight}, either at departure or arrival.
+ * A snapshot of the METAR weather for a specific {@link Flight}.
  * <p>
- * Snapshots are created in {@link Status#PENDING} state by the flight-creation
- * flow and are asynchronously transitioned to {@link Status#AVAILABLE} (carrying
- * the raw and decoded METAR) or {@link Status#UNAVAILABLE} if the upstream
- * weather service cannot deliver data for the requested point in time.
+ * These are created as {@link Status#PENDING} when the flight is saved.
+ * A background worker then attempts to fetch the weather, updating the status to
+ * {@link Status#AVAILABLE} (with data) or {@link Status#UNAVAILABLE} (if the API fails).
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,7 +20,6 @@ import java.time.LocalDateTime;
 @Table(name = "weather_snapshots")
 public class WeatherSnapshot {
 
-    /** Equality is determined only by the {@code id} */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -89,10 +86,7 @@ public class WeatherSnapshot {
     /**
      * Creates a new snapshot in {@link Status#PENDING} state. The actual METAR
      * data is filled in later via {@link #markAvailable(String, String)},
-     * or the snapshot is finalised via {@link #markUnavailable()}.
-     * <p>
-     * The owning flight is wired in via {@link Flight#addWeatherSnapshot(WeatherSnapshot)},
-     * which keeps both sides of the bidirectional relationship in sync.
+     * or via {@link #markUnavailable()} (if fetching fails).
      *
      * @param phaseType     departure or arrival
      * @param icao          4-letter ICAO code of the observed airport
@@ -104,7 +98,7 @@ public class WeatherSnapshot {
     }
 
     /**
-     * Transitions the snapshot to {@link Status#AVAILABLE} and stores the fetched data.
+     * Marks the snapshot as {@link Status#AVAILABLE} and stores the fetched data.
      *
      * @param rawMetar             raw METAR string
      * @param decodedMetarJson     decoded METAR fields as JSON
@@ -121,16 +115,10 @@ public class WeatherSnapshot {
         this.status = Status.UNAVAILABLE;
     }
 
-    /**
-     * Package-private back-reference setter. Callers must go through
-     * {@link Flight#addWeatherSnapshot(WeatherSnapshot)} / {@link Flight#removeWeatherSnapshot(WeatherSnapshot)}
-     * to keep both sides of the bidirectional relationship in sync.
-     */
     void setFlight(Flight flight) {
         this.flight = flight;
     }
 
-    /** Sets {@link #createdAt} to the current time before the first database insert */
     @PrePersist
     private void onCreate() {
         this.createdAt = LocalDateTime.now();

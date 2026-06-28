@@ -117,7 +117,7 @@ Login is done with Spring Security and JWT (stateless):
 - Register and login at `POST /api/v1/auth/register` and `POST /api/v1/auth/login`. Both return a JWT (Bearer token). 
 Passwords are hashed with **BCrypt** before saving.
 - The JWT is signed with HS256 using the `jjwt` library. It expires after 24 hours. And the secret comes from the 
-`JWT_SECRET` environment variable (base64, at least 32 bytes). Code is in `security/JwtService.java`.
+`JWT_SECRET` env variable (base64, at least 32 bytes). Code is in `security/JwtService.java`.
 - `JwtAuthFilter` runs before the standard `UsernamePasswordAuthenticationFilter`. It reads the Bearer token, checks it, 
 and loads the `Pilot` as the Spring Security principal.
 - Every query for `Flight` and `Aircraft` is filtered by the current pilot ID, so one pilot can never see or change 
@@ -132,9 +132,9 @@ another pilot's data.
 Both external APIs can be slow or temporarily down, so the backend protects itself with the following:
 
 | Topic    | Implementation | Config                                                                                                |
-|----------|-----------------------------------------|-------------------------------------------------------------------------------------------------------|
-| Caching  | Spring Cache + **Caffeine**             | `airports`: 24 h TTL, 2000 entries; `liveMetar`: 10 min TTL, 500 entries (see `config/CacheConfig.java`) |
-| Retries  | **Spring Retry** `@Retryable` on `AirportService.fetchFromNinja()` | 3 attempts, exponential backoff 500 ms -> 5s (multiplier 2)                                           |
+|----------|------------------------------------|-------------------------------------------------------------------------------------------------------|
+| Caching  | Spring Cache + Caffeine            | `airports`: 24 h TTL, 2000 entries; `liveMetar`: 10 min TTL, 500 entries (see `config/CacheConfig.java`) |
+| Retries  | Spring Retry `@Retryable` on `AirportService.fetchFromNinja()` | 3 attempts, exponential backoff 500 ms -> 5s (multiplier 2)                                           |
 | Timeouts | Connect and read timeout on each `RestClient` | airport API: 5s, weather API: 20s                                                                     |
 | Async    | `@Async` on the weather snapshot, so creating a flight returns right away | thread pool with 2 to 4 workers (`spring.task.execution.pool`)                                        |
 | Health   | Spring Boot Actuator + Docker `pg_isready` healthcheck | `/actuator/health`, Compose waits for Postgres to be healthy                                          |
