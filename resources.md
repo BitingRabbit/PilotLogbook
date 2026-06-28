@@ -2,6 +2,7 @@
 
 This file lists all the resources used in this project as to conform with the DHBW guidelines. The rest, that is not 
 mentioned here, has been own knowledge from prior projects.
+I used more external resources (documentation, tutorials, articles) than listed here, however the following are the most important ones and the only ones I could find again.
 
 ### Spring Security Architecture of JWT Authentication
 - https://medium.com/@th.chousiadas/spring-security-architecture-of-jwt-authentication-a7967a8ee309
@@ -28,13 +29,14 @@ mentioned here, has been own knowledge from prior projects.
 - https://www.baeldung.com/spring-boot-restclient
 
 ### AI
-While the resources above have been useful, some questions and issues got resolved with the help of AI.
+While the resources above have been useful, some questions and issues got resolved with the help of AI. Nonetheless, 
+the majority of the code has been written by myself, and the AI has only been used for some small parts and primarily as aid.
 AI-Model: Claude Opus 4.7
-Used:
+Usage examples:
 - Some doc-strings and comments
-- Some frontend parts (especially partially css)
+- Some frontend parts (especially css)
 - Mermaid diagrams
-- Bugfixing, mainly in spring security topics
+- Bugfixing, mainly in spring security topics but as well some other backend issues
 - Some commit messages for proper phrasing (professionality)
 
 
