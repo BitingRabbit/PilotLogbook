@@ -32,7 +32,7 @@ This is a project for the *Web Engineering* course at DHBW Ravensburg (summer 20
 
 ```mermaid
 flowchart LR
-    FE["React + Vite<br/>Frontend"] -- "REST / GraphQL" --> BE["Spring Boot 4<br/>Java 21"]
+    FE["React + Vite<br/>Frontend"] -- "REST" --> BE["Spring Boot 4<br/>Java 21<br/>(REST + GraphQL)"]
     BE -- "JPA" --> DB[("PostgreSQL 16")]
     BE -- "HTTPS" --> API["api-ninjas<br/>Airports API"]
     BE -- "HTTPS" --> WX["NOAA<br/>Aviation Weather API"]
